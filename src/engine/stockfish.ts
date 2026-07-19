@@ -133,7 +133,7 @@ export class StockfishEngine {
           const cp = / score cp (-?\d+)/.exec(line)
           if (mate) {
             const m = Number(mate[1])
-            scoreCp = m > 0 ? 100000 - m : -100000 - m
+            scoreCp = m > 0 ? 1000 - Math.min(m, 10) * 10 : -(1000 - Math.min(Math.abs(m), 10) * 10)
           } else if (cp) {
             scoreCp = Number(cp[1])
           }
@@ -195,7 +195,7 @@ export class StockfishEngine {
           const cp = / score cp (-?\d+)/.exec(line)
           if (mate) {
             const m = Number(mate[1])
-            scoreCp = m > 0 ? 100000 - m : -100000 - m
+            scoreCp = m > 0 ? 1000 - Math.min(m, 10) * 10 : -(1000 - Math.min(Math.abs(m), 10) * 10)
           } else if (cp) {
             scoreCp = Number(cp[1])
           }

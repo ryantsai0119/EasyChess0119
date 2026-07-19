@@ -2,6 +2,9 @@ import { Chess } from 'chess.js'
 import type { AnalyzedMove, GameReview, MoveClass } from '../types'
 import type { StockfishEngine } from '../engine/stockfish'
 
+/** Cap used when converting mate scores / extreme evals for CPL. */
+const EVAL_CAP = 1000
+
 function classify(cpl: number): MoveClass {
   if (cpl <= 20) return 'best'
   if (cpl <= 80) return 'good'
@@ -14,11 +17,52 @@ function emptyCounts(): Record<MoveClass, number> {
   return { best: 0, good: 0, inaccuracy: 0, mistake: 0, blunder: 0 }
 }
 
-/** Approximate chess.com-style accuracy from average centipawn loss. */
+/**
+ * Clamp engine scores so mate (±100000) does not blow up ACPL / accuracy.
+ */
+export function normalizeEvalCp(cp: number): number {
+  if (!Number.isFinite(cp)) return 0
+  if (Math.abs(cp) >= 90000) {
+    return cp > 0 ? EVAL_CAP : -EVAL_CAP
+  }
+  return Math.max(-EVAL_CAP, Math.min(EVAL_CAP, cp))
+}
+
+/**
+ * Accuracy from average centipawn loss (soft curve).
+ * Mate-inflated ACPL previously drove this to 0% — callers must pass capped CPL.
+ */
 export function accuracyFromAcpl(acpl: number): number {
-  const x = Math.max(0, acpl)
-  const acc = 103.1668 * Math.exp(-0.04354 * x) - 3.1669
+  const x = Math.max(0, Math.min(1000, acpl))
+  // Softer than the old chess.com-cited constants (those assumed win% loss, not raw ACPL).
+  const acc = 100 * Math.exp(-0.0035 * x)
   return Math.max(0, Math.min(100, Math.round(acc * 10) / 10))
+}
+
+/** Backup / blend: accuracy from move-class mix (matches the stats table). */
+export function accuracyFromCounts(counts: Record<MoveClass, number>): number {
+  const weights: Record<MoveClass, number> = {
+    best: 1,
+    good: 0.9,
+    inaccuracy: 0.65,
+    mistake: 0.35,
+    blunder: 0.1,
+  }
+  let total = 0
+  let score = 0
+  for (const k of Object.keys(weights) as MoveClass[]) {
+    const n = counts[k] ?? 0
+    total += n
+    score += n * weights[k]
+  }
+  if (total === 0) return 0
+  return Math.round((100 * score) / total * 10) / 10
+}
+
+function combineAccuracy(acplAcc: number, countAcc: number): number {
+  // Prefer ACPL when sane; blend so a few mate spikes cannot zero the board.
+  if (acplAcc <= 5 && countAcc >= 40) return countAcc
+  return Math.round(((acplAcc + countAcc) / 2) * 10) / 10
 }
 
 function uciToMove(uci: string): { from: string; to: string; promotion?: string } {
@@ -75,11 +119,16 @@ export async function analyzeGame(
     const fenAfter = replay.fen()
     const evalAfter = await engine.evaluate(fenAfter, depth)
 
-    // CPL: how much the player's expected eval dropped (from their POV before move)
+    // CPL from player's POV, with mate scores capped so accuracy stays meaningful.
     const beforePlayer =
-      color === 'w' ? evalBefore.scoreCp : -evalBefore.scoreCp
-    const afterPlayer = color === 'w' ? evalAfter.scoreCp : -evalAfter.scoreCp
-    const cpl = Math.max(0, beforePlayer - afterPlayer)
+      color === 'w'
+        ? normalizeEvalCp(evalBefore.scoreCp)
+        : -normalizeEvalCp(evalBefore.scoreCp)
+    const afterPlayer =
+      color === 'w'
+        ? normalizeEvalCp(evalAfter.scoreCp)
+        : -normalizeEvalCp(evalAfter.scoreCp)
+    const cpl = Math.max(0, Math.min(EVAL_CAP, beforePlayer - afterPlayer))
     const classification = classify(cpl)
 
     const analyzed: AnalyzedMove = {
@@ -114,8 +163,14 @@ export async function analyzeGame(
 
   return {
     moves,
-    whiteAccuracy: accuracyFromAcpl(avg(whiteCpls)),
-    blackAccuracy: accuracyFromAcpl(avg(blackCpls)),
+    whiteAccuracy: combineAccuracy(
+      accuracyFromAcpl(avg(whiteCpls)),
+      accuracyFromCounts(whiteCounts),
+    ),
+    blackAccuracy: combineAccuracy(
+      accuracyFromAcpl(avg(blackCpls)),
+      accuracyFromCounts(blackCounts),
+    ),
     whiteCounts,
     blackCounts,
   }
