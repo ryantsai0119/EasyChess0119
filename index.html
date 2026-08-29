@@ -1,15 +1,140 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-Hant">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>♟️</text></svg>" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="EasyChess — Stockfish 18 web chess with AI, local 2P, and game review" />
-    <title>EasyChess · Stockfish 18</title>
-    <script type="module" crossorigin src="/EasyChess0119/assets/index-CEtSL7ro.js"></script>
-    <link rel="stylesheet" crossorigin href="/EasyChess0119/assets/index-C-S5UTZT.css">
-  </head>
-  <body>
-    <div id="root"></div>
-  </body>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>青銅前線 · 單線派兵</title>
+  <meta name="description" content="原創單線戰爭：用金幣招兵，沿一條战线推向敵營。玩法接近 Ancient Wars，但單位、關卡與畫面都是新做的。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+TC:wght@400;500;600;700&family=Tomorrow:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="tokens.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <nav class="nav-pill" id="nav" aria-label="主選單">
+    <a class="wordmark" href="#menu" data-screen="menu">青銅前線</a>
+    <ul class="nav-pill__links">
+      <li><a href="#battles" data-screen="battles">戰役</a></li>
+      <li><a href="#how" data-screen="how">規則</a></li>
+    </ul>
+    <button type="button" class="cta-fill" id="btn-quick" data-screen="battles">開戰</button>
+  </nav>
+
+  <main id="app">
+    <section id="screen-menu" class="screen is-on" aria-labelledby="menu-title">
+      <div class="brief">
+        <p class="kicker">單線 · 招兵 · 推營</p>
+        <h1 id="menu-title">青銅前線</h1>
+        <p class="lede">你記得那種把士兵丟上一条路、看他們自己打過去的遊戲。這是同型玩法的原創網頁版：金幣進帳、單位對撞、毀掉對面的營壘就贏。</p>
+        <div class="brief-actions">
+          <button type="button" class="btn-primary" data-screen="battles">打開戰役表</button>
+          <button type="button" class="btn-ghost" data-screen="how">先看規則</button>
+        </div>
+        <p class="note">不是 Ancient Wars: Caesar 的複製。名稱、單位、關卡與畫面都是新做的。</p>
+      </div>
+      <aside class="slate" aria-label="戰況摘要">
+        <p class="slate-label">目前進度</p>
+        <p class="slate-stat" id="progress-stat">第 1 戰未開</p>
+        <p class="slate-copy" id="progress-copy">從河岸斥候開始。過關會解鎖下一場，存在這台瀏覽器裡。</p>
+        <dl class="slate-dl">
+          <div><dt>單位</dt><dd>9 種，三個年代</dd></div>
+          <div><dt>戰役</dt><dd>8 場遞增</dd></div>
+          <div><dt>操作</dt><dd>滑鼠點，或鍵盤 1–9</dd></div>
+        </dl>
+      </aside>
+    </section>
+
+    <section id="screen-battles" class="screen" hidden aria-labelledby="battles-title">
+      <header class="screen-head">
+        <h2 id="battles-title">戰役表</h2>
+        <p>一條路，兩座營。越後面的敵人越會存錢、升年代。</p>
+      </header>
+      <ol class="campaign" id="campaign"></ol>
+    </section>
+
+    <section id="screen-how" class="screen" hidden aria-labelledby="how-title">
+      <header class="screen-head">
+        <h2 id="how-title">怎麼打</h2>
+        <p>沒有走位微操。你做的是時機：何時出兵、何時存錢升年代。</p>
+      </header>
+      <div class="how-grid">
+        <article>
+          <h3>金幣自己長</h3>
+          <p>雙方每秒進帳。打死敵兵會再拿到一筆。錢不夠的按鈕會暗掉。</p>
+        </article>
+        <article>
+          <h3>點了就上路</h3>
+          <p>單位從己營走出，撞到敵人就打。遠程會停下來射。打到敵營血條歸零即勝。</p>
+        </article>
+        <article>
+          <h3>年代與砲塔</h3>
+          <p>升年代解鎖更貴、更硬的單位，舊兵仍可出。砲塔守在營前，專門打靠近的敵人。</p>
+        </article>
+        <article>
+          <h3>戰號與火箭</h3>
+          <p>戰號讓己方暫時打得更痛。鐵器起可放火箭，打中段整排敵兵。兩招都有冷卻。</p>
+        </article>
+      </div>
+      <p class="keys">鍵盤：<kbd>1</kbd>–<kbd>9</kbd> 出兵 · <kbd>A</kbd> 年代 · <kbd>T</kbd> 砲塔 · <kbd>H</kbd> 戰號 · <kbd>V</kbd> 火箭 · <kbd>空白</kbd> 暫停</p>
+    </section>
+
+    <section id="screen-play" class="screen screen-play" hidden aria-labelledby="play-title">
+      <header class="hud" id="hud">
+        <div class="hud-left">
+          <h2 id="play-title" class="hud-title">河岸斥候</h2>
+          <p class="hud-age" id="hud-age">銅器</p>
+        </div>
+        <dl class="hud-meters">
+          <div>
+            <dt>金幣</dt>
+            <dd id="hud-gold">0</dd>
+          </div>
+          <div>
+            <dt>進帳</dt>
+            <dd id="hud-income">0／秒</dd>
+          </div>
+          <div>
+            <dt>己營</dt>
+            <dd id="hud-php">0</dd>
+          </div>
+          <div>
+            <dt>敵營</dt>
+            <dd id="hud-ehp">0</dd>
+          </div>
+        </dl>
+        <div class="hud-tools">
+          <button type="button" class="btn-tool" id="btn-mute" aria-pressed="false">聲音開</button>
+          <button type="button" class="btn-tool" id="btn-pause" aria-pressed="false">暫停</button>
+          <button type="button" class="btn-tool btn-tool-danger" id="btn-retreat">撤出</button>
+        </div>
+      </header>
+
+      <figure class="field-frame">
+        <canvas id="field" width="1100" height="420" aria-label="戰場"></canvas>
+        <figcaption class="sr-only">左側是你的營壘，右側是敵營。單位沿中間土路推進。</figcaption>
+      </figure>
+
+      <div class="console" id="console">
+        <div class="console-row" id="unit-row" role="group" aria-label="招兵"></div>
+        <div class="console-row console-row-cmd" id="cmd-row"></div>
+        <p class="console-hint" id="console-hint" role="status"></p>
+      </div>
+    </section>
+  </main>
+
+  <div id="overlay" class="overlay" hidden>
+    <div class="overlay-card" role="dialog" aria-modal="true" aria-labelledby="overlay-title">
+      <h2 id="overlay-title">暫停</h2>
+      <p id="overlay-copy"></p>
+      <div class="overlay-actions" id="overlay-actions"></div>
+    </div>
+  </div>
+
+  <footer class="foot-line">
+    <p>青銅前線 · 原創單線戰爭 · 2026 · 開 index.html 就能打</p>
+  </footer>
+
+  <script src="game.js"></script>
+</body>
 </html>
