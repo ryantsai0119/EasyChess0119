@@ -1131,7 +1131,7 @@
     if (splash) {
       document.body.classList.add("is-title");
       startTitleLoop();
-      var auto = setTimeout(function () { dismissSplash(false); }, 2600);
+      var auto = setTimeout(function () { dismissSplash(false); }, 5200);
       function tapSplash() {
         clearTimeout(auto);
         dismissSplash(true);
