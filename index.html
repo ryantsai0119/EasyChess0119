@@ -3,125 +3,87 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>青銅前線 · 單線派兵</title>
-  <meta name="description" content="原創單線戰爭：用金幣招兵，沿一條战线推向敵營。玩法接近 Ancient Wars，但單位、關卡與畫面都是新做的。">
+  <title>青銅前線</title>
+  <meta name="description" content="單線戰爭：用金幣招兵，沿一條战线推向敵營。">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+TC:wght@400;500;600;700&family=Tomorrow:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+TC:wght@400;500;600;700&family=Noto+Serif+TC:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="tokens.css">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <nav class="nav-pill" id="nav" aria-label="主選單">
-    <a class="wordmark" href="#menu" data-screen="menu">青銅前線</a>
-    <ul class="nav-pill__links">
-      <li><a href="#battles" data-screen="battles">戰役</a></li>
-      <li><a href="#how" data-screen="how">規則</a></li>
-    </ul>
-    <button type="button" class="cta-fill" id="btn-quick" data-screen="battles">開戰</button>
-  </nav>
-
   <main id="app">
-    <section id="screen-menu" class="screen is-on" aria-labelledby="menu-title">
-      <div class="brief">
-        <p class="kicker">單線 · 招兵 · 推營</p>
-        <h1 id="menu-title">青銅前線</h1>
-        <p class="lede">你記得那種把士兵丟上一条路、看他們自己打過去的遊戲。這是同型玩法的原創網頁版：金幣進帳、單位對撞、毀掉對面的營壘就贏。</p>
-        <div class="brief-actions">
-          <button type="button" class="btn-primary" data-screen="battles">打開戰役表</button>
-          <button type="button" class="btn-ghost" data-screen="how">先看規則</button>
-        </div>
-        <p class="note">不是 Ancient Wars: Caesar 的複製。名稱、單位、關卡與畫面都是新做的。</p>
+    <section id="screen-menu" class="screen screen-title is-on" aria-labelledby="menu-title">
+      <div class="title-sky" aria-hidden="true">
+        <canvas id="title-field" width="1280" height="720"></canvas>
       </div>
-      <aside class="slate" aria-label="戰況摘要">
-        <p class="slate-label">目前進度</p>
-        <p class="slate-stat" id="progress-stat">第 1 戰未開</p>
-        <p class="slate-copy" id="progress-copy">從河岸斥候開始。過關會解鎖下一場，存在這台瀏覽器裡。</p>
-        <dl class="slate-dl">
-          <div><dt>單位</dt><dd>9 種，三個年代</dd></div>
-          <div><dt>戰役</dt><dd>8 場遞增</dd></div>
-          <div><dt>操作</dt><dd>滑鼠點，或鍵盤 1–9</dd></div>
-        </dl>
-      </aside>
+      <div class="title-card">
+        <p class="kicker">單線戰爭</p>
+        <h1 id="menu-title">青銅前線</h1>
+        <p class="lede">金幣招兵，沿一條路推向敵營。</p>
+        <p class="title-progress" id="progress-stat">第 1 戰</p>
+        <div class="title-actions">
+          <button type="button" class="btn-primary" id="btn-continue">開戰</button>
+          <button type="button" class="btn-ghost" data-screen="battles">戰役</button>
+          <button type="button" class="btn-ghost" id="btn-how">怎麼打</button>
+        </div>
+      </div>
     </section>
 
-    <section id="screen-battles" class="screen" hidden aria-labelledby="battles-title">
-      <header class="screen-head">
-        <h2 id="battles-title">戰役表</h2>
-        <p>一條路，兩座營。越後面的敵人越會存錢、升年代。</p>
+    <section id="screen-battles" class="screen screen-select" hidden aria-labelledby="battles-title">
+      <header class="select-head">
+        <button type="button" class="btn-back" data-screen="menu">返回</button>
+        <div>
+          <h2 id="battles-title">戰役</h2>
+          <p>一條路，兩座營。越後面的敵人越會存錢。</p>
+        </div>
       </header>
       <ol class="campaign" id="campaign"></ol>
     </section>
 
-    <section id="screen-how" class="screen" hidden aria-labelledby="how-title">
-      <header class="screen-head">
-        <h2 id="how-title">怎麼打</h2>
-        <p>沒有走位微操。你做的是時機：何時出兵、何時存錢升年代。</p>
-      </header>
-      <div class="how-grid">
-        <article>
-          <h3>金幣自己長</h3>
-          <p>雙方每秒進帳。打死敵兵會再拿到一筆。錢不夠的按鈕會暗掉。</p>
-        </article>
-        <article>
-          <h3>點了就上路</h3>
-          <p>單位從己營走出，撞到敵人就打。遠程會停下來射。打到敵營血條歸零即勝。</p>
-        </article>
-        <article>
-          <h3>年代與砲塔</h3>
-          <p>升年代解鎖更貴、更硬的單位，舊兵仍可出。砲塔守在營前，專門打靠近的敵人。</p>
-        </article>
-        <article>
-          <h3>戰號與火箭</h3>
-          <p>戰號讓己方暫時打得更痛。鐵器起可放火箭，打中段整排敵兵。兩招都有冷卻。</p>
-        </article>
-      </div>
-      <p class="keys">鍵盤：<kbd>1</kbd>–<kbd>9</kbd> 出兵 · <kbd>A</kbd> 年代 · <kbd>T</kbd> 砲塔 · <kbd>H</kbd> 戰號 · <kbd>V</kbd> 火箭 · <kbd>空白</kbd> 暫停</p>
-    </section>
-
     <section id="screen-play" class="screen screen-play" hidden aria-labelledby="play-title">
-      <header class="hud" id="hud">
-        <div class="hud-left">
-          <h2 id="play-title" class="hud-title">河岸斥候</h2>
-          <p class="hud-age" id="hud-age">銅器</p>
-        </div>
-        <dl class="hud-meters">
-          <div>
-            <dt>金幣</dt>
-            <dd id="hud-gold">0</dd>
-          </div>
-          <div>
-            <dt>進帳</dt>
-            <dd id="hud-income">0／秒</dd>
-          </div>
-          <div>
-            <dt>己營</dt>
-            <dd id="hud-php">0</dd>
-          </div>
-          <div>
-            <dt>敵營</dt>
-            <dd id="hud-ehp">0</dd>
-          </div>
-        </dl>
-        <div class="hud-tools">
-          <button type="button" class="btn-tool" id="btn-mute" aria-pressed="false">聲音開</button>
-          <button type="button" class="btn-tool" id="btn-pause" aria-pressed="false">暫停</button>
-          <button type="button" class="btn-tool btn-tool-danger" id="btn-retreat">撤出</button>
-        </div>
-      </header>
+      <div class="stage">
+        <figure class="field-frame">
+          <canvas id="field" width="1280" height="720" aria-label="戰場"></canvas>
+          <figcaption class="sr-only">左側是你的營壘，右側是敵營。單位沿中間土路推進。</figcaption>
+        </figure>
 
-      <figure class="field-frame">
-        <canvas id="field" width="1100" height="420" aria-label="戰場"></canvas>
-        <figcaption class="sr-only">左側是你的營壘，右側是敵營。單位沿中間土路推進。</figcaption>
-      </figure>
+        <header class="hud" id="hud">
+          <div class="hud-left">
+            <h2 id="play-title" class="hud-title">河岸斥候</h2>
+            <p class="hud-age" id="hud-age">銅器</p>
+          </div>
+          <div class="hud-gold" aria-live="polite">
+            <span class="hud-gold-value" id="hud-gold">0</span>
+            <span class="hud-gold-rate" id="hud-income">+0／秒</span>
+          </div>
+          <button type="button" class="btn-menu" id="btn-menu" aria-haspopup="dialog">選單</button>
+        </header>
 
-      <div class="console" id="console">
-        <div class="console-row" id="unit-row" role="group" aria-label="招兵"></div>
-        <div class="console-row console-row-cmd" id="cmd-row"></div>
-        <p class="console-hint" id="console-hint" role="status"></p>
+        <p class="toast" id="console-hint" role="status"></p>
+      </div>
+
+      <div class="dock" id="console">
+        <div class="dock-units" id="unit-row" role="group" aria-label="招兵"></div>
+        <div class="dock-cmds" id="cmd-row" role="group" aria-label="指令"></div>
       </div>
     </section>
   </main>
+
+  <div id="panel-how" class="overlay" hidden>
+    <div class="overlay-card overlay-card-wide" role="dialog" aria-modal="true" aria-labelledby="how-title">
+      <h2 id="how-title">怎麼打</h2>
+      <ul class="how-list">
+        <li>金幣每秒進帳。打死敵兵再拿一筆。錢不夠的格子會暗掉。</li>
+        <li>點格子出兵，或按鍵盤 <kbd>1</kbd>–<kbd>9</kbd>。單位自己上路，遠程會停下來射。</li>
+        <li>升年代解鎖更硬的兵。砲塔守營前。<kbd>A</kbd> 年代 · <kbd>T</kbd> 砲塔。</li>
+        <li>戰號暫時增傷，鐵器起可放火箭打中段。<kbd>H</kbd> · <kbd>V</kbd>。空白鍵或 <kbd>Esc</kbd> 暫停。</li>
+      </ul>
+      <div class="overlay-actions">
+        <button type="button" class="btn-primary" id="btn-how-close">知道了</button>
+      </div>
+    </div>
+  </div>
 
   <div id="overlay" class="overlay" hidden>
     <div class="overlay-card" role="dialog" aria-modal="true" aria-labelledby="overlay-title">
@@ -131,10 +93,8 @@
     </div>
   </div>
 
-  <footer class="foot-line">
-    <p>青銅前線 · 原創單線戰爭 · 2026 · 開 index.html 就能打</p>
-  </footer>
-
+  <script src="art.js"></script>
+  <script src="audio.js"></script>
   <script src="game.js"></script>
 </body>
 </html>

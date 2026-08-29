@@ -2,12 +2,12 @@
   "use strict";
 
   var STORAGE_KEY = "bronze-front-v1";
-  var W = 1100;
-  var H = 420;
-  var GROUND = 318;
-  var PLAYER_BASE_X = 78;
-  var ENEMY_BASE_X = 1022;
-  var LANE_Y = [292, 308, 324];
+  var W = 1280;
+  var H = 720;
+  var GROUND = 548;
+  var PLAYER_BASE_X = 90;
+  var ENEMY_BASE_X = 1190;
+  var LANE_Y = [508, 538, 568];
 
   var UNIT_DEFS = {
     spear:    { name: "矛兵", age: 0, cost: 15,  hp: 40,  atk: 7,  range: 22,  speed: 42, reload: 0.72, kind: "melee", siege: 1 },
@@ -48,9 +48,24 @@
   var tokens = {};
   var state = null;
   var raf = 0;
+  var titleRaf = 0;
   var lastTs = 0;
-  var audio = { ctx: null, mute: false };
+  var audio = { mute: false };
   var flashTimers = {};
+  var hitStop = 0;
+  var shotSfxGate = 0;
+
+  function sfx(name) {
+    var fn = window.BronzeAudio && window.BronzeAudio.sfx[name];
+    if (fn) fn.apply(null, Array.prototype.slice.call(arguments, 1));
+  }
+
+  function ensureAudio() {
+    if (window.BronzeAudio) {
+      window.BronzeAudio.setMute(audio.mute);
+      window.BronzeAudio.resume();
+    }
+  }
 
   function loadProgress() {
     try {
@@ -84,34 +99,12 @@
       "--color-sky", "--color-horizon", "--color-ground", "--color-road",
       "--color-player", "--color-player-deep", "--color-enemy", "--color-enemy-deep",
       "--color-hp", "--color-hp-low", "--color-ok", "--color-bad", "--font-display",
-      "--font-body"
+      "--font-body", "--color-bronze", "--color-copper", "--color-ember", "--color-wood",
+      "--color-stone", "--color-stone-2", "--color-moon", "--color-dust", "--color-grass",
+      "--color-water", "--color-iron", "--color-steel"
     ].forEach(function (name) {
       tokens[name] = styles.getPropertyValue(name).trim();
     });
-  }
-
-  function ensureAudio() {
-    if (audio.ctx || audio.mute) return;
-    var AC = window.AudioContext || window.webkitAudioContext;
-    if (!AC) return;
-    audio.ctx = new AC();
-  }
-
-  function beep(freq, dur, type, gain) {
-    if (audio.mute) return;
-    ensureAudio();
-    if (!audio.ctx) return;
-    var now = audio.ctx.currentTime;
-    var osc = audio.ctx.createOscillator();
-    var g = audio.ctx.createGain();
-    osc.type = type || "square";
-    osc.frequency.setValueAtTime(freq, now);
-    g.gain.setValueAtTime(gain || 0.035, now);
-    g.gain.exponentialRampToValueAtTime(0.0001, now + dur);
-    osc.connect(g);
-    g.connect(audio.ctx.destination);
-    osc.start(now);
-    osc.stop(now + dur);
   }
 
   function uid() {
@@ -183,16 +176,18 @@
     var def = UNIT_DEFS[typeId];
     if (def.age > state.age) {
       flash("unit-" + typeId, "error", "這個單位要先升年代。");
+      sfx("deny");
       return false;
     }
     if (state.gold < def.cost) {
       flash("unit-" + typeId, "error", "金幣不夠，再等一下。");
+      sfx("deny");
       return false;
     }
     state.gold -= def.cost;
     spawn(1, typeId, Math.floor(Math.random() * 3));
     flash("unit-" + typeId, "success", "");
-    beep(320 + def.age * 40, 0.07, "square", 0.03);
+    sfx("recruit", def.age);
     return true;
   }
 
@@ -209,9 +204,9 @@
     }
     state.gold -= cost;
     state.age += 1;
+    renderUnitBar();
     flash("cmd-age", "success", "進入" + AGE_NAMES[state.age] + "。舊兵仍可出。");
-    beep(180, 0.16, "sawtooth", 0.04);
-    beep(260, 0.18, "triangle", 0.03);
+    sfx("age");
     return true;
   }
 
@@ -229,7 +224,7 @@
     state.gold -= cost;
     state.turret += 1;
     flash("cmd-turret", "success", "砲塔改到 " + (state.turret + 1) + " 級。");
-    beep(140, 0.12, "triangle", 0.04);
+    sfx("turret");
     return true;
   }
 
@@ -242,7 +237,7 @@
     state.horn = 8;
     state.hornCd = 26;
     flash("cmd-horn", "success", "戰號響起，己方傷害提高。");
-    beep(90, 0.28, "sawtooth", 0.05);
+    sfx("horn");
     return true;
   }
 
@@ -259,14 +254,14 @@
     state.volleyCd = 38;
     var dmg = 28 + state.age * 10;
     state.units.forEach(function (u) {
-      if (u.side === -1 && u.x > 360 && u.x < 760) {
-        hurtUnit(u, dmg, 1);
+      if (u.side === -1 && u.x > W * 0.32 && u.x < W * 0.68) {
+        hurtUnit(u, dmg, 1, true);
       }
     });
     for (var i = 0; i < 18; i += 1) {
       state.parts.push({
-        x: 380 + Math.random() * 360,
-        y: 210 + Math.random() * 90,
+        x: W * 0.34 + Math.random() * W * 0.32,
+        y: GROUND - 220 + Math.random() * 90,
         vx: (Math.random() - 0.5) * 40,
         vy: 40 + Math.random() * 80,
         life: 0.45 + Math.random() * 0.3,
@@ -274,8 +269,8 @@
       });
     }
     flash("cmd-volley", "success", "火箭落到中段。");
-    beep(420, 0.09, "square", 0.04);
-    beep(210, 0.14, "sawtooth", 0.03);
+    sfx("volley");
+    hitStop = Math.max(hitStop, 0.08);
     return true;
   }
 
@@ -294,7 +289,7 @@
     }, 420);
   }
 
-  function hurtUnit(unit, amount, fromSide) {
+  function hurtUnit(unit, amount, fromSide, silent) {
     unit.hp -= amount;
     state.floats.push({
       x: unit.x,
@@ -303,26 +298,33 @@
       life: 0.7,
       color: fromSide === 1 ? tokens["--color-accent"] : tokens["--color-bad"]
     });
+    if (amount >= 12) hitStop = Math.max(hitStop, 0.055);
+    else if (amount >= 7) hitStop = Math.max(hitStop, 0.03);
+    if (!silent) sfx("hit");
     if (unit.hp <= 0) {
       var bounty = Math.round(UNIT_DEFS[unit.type].cost * 0.42);
       if (unit.side === -1) state.gold += bounty;
       else state.egold += bounty;
-      for (var i = 0; i < 7; i += 1) {
+      for (var i = 0; i < 12; i += 1) {
         state.parts.push({
           x: unit.x,
           y: unit.y,
-          vx: (Math.random() - 0.5) * 90,
-          vy: -20 - Math.random() * 50,
-          life: 0.4 + Math.random() * 0.25,
-          color: unit.side === 1 ? tokens["--color-player"] : tokens["--color-enemy"]
+          vx: (Math.random() - 0.5) * 110,
+          vy: -20 - Math.random() * 70,
+          life: 0.45 + Math.random() * 0.35,
+          color: unit.side === 1 ? tokens["--color-player"] : tokens["--color-enemy"],
+          size: 2 + Math.random() * 3
         });
       }
       state.units = state.units.filter(function (u) { return u !== unit; });
-      beep(unit.side === 1 ? 110 : 190, 0.06, "triangle", 0.025);
+      if (!silent) sfx("death", unit.side === 1);
+      hitStop = Math.max(hitStop, 0.07);
     }
   }
 
   function hurtBase(side, amount) {
+    sfx("baseHit");
+    hitStop = Math.max(hitStop, 0.045);
     if (side === -1) {
       state.ehp = Math.max(0, state.ehp - amount);
       if (state.ehp <= 0) finish("win");
@@ -336,25 +338,23 @@
     if (state.over) return;
     state.over = kind;
     state.paused = true;
+    if (window.BronzeAudio) window.BronzeAudio.startBed("title");
     if (kind === "win") {
       var unlocked = Math.max(loadProgress().unlocked, state.index + 2);
       saveProgress({ unlocked: Math.min(9, unlocked) });
       renderMenuMeta();
       renderCampaign();
-      beep(262, 0.12, "triangle", 0.04);
-      beep(330, 0.14, "triangle", 0.04);
-      beep(392, 0.22, "triangle", 0.045);
+      sfx("win");
       showOverlay(
         state.index === 7 ? "王庭已破" : "這場打下了",
         state.index === 7
-          ? "八場都過了。戰役表還可以重打任何一場。"
+          ? "八場都過了。戰役裡還可以重打任何一場。"
           : "敵營倒下。下一場會更會存錢、更早升年代。",
         kind
       );
     } else {
-      beep(140, 0.2, "sawtooth", 0.04);
-      beep(90, 0.28, "sawtooth", 0.035);
-      showOverlay("己營被推平", "金幣節奏或年代落後都會這樣。從戰役表再開一場。", kind);
+      sfx("lose");
+      showOverlay("己營被推平", "金幣節奏或年代落後都會這樣。再打，或換一場。", kind);
     }
   }
 
@@ -399,8 +399,13 @@
       vy: (dy / len) * 420,
       dmg: dmg,
       side: side,
-      life: 0.9
+      life: 0.9,
+      trail: [{ x: fromX, y: fromY }]
     });
+    if (shotSfxGate <= 0) {
+      sfx("shot");
+      shotSfxGate = 0.07;
+    }
   }
 
   function stepUnits(dt) {
@@ -425,6 +430,7 @@
             if (def.kind === "range") {
               fireShot(unit.x + unit.side * 10, unit.y - 18, foe.unit.x, foe.unit.y - 16, dmg, unit.side);
             } else {
+              sfx("melee");
               hurtUnit(foe.unit, dmg, unit.side);
             }
           } else {
@@ -432,6 +438,7 @@
             if (def.kind === "range") {
               fireShot(unit.x + unit.side * 10, unit.y - 18, baseX, GROUND - 70, siege, unit.side);
             } else {
+              sfx("melee");
               hurtBase(unit.side === 1 ? -1 : 1, siege);
             }
           }
@@ -454,6 +461,9 @@
       s.x += s.vx * dt;
       s.y += s.vy * dt;
       s.life -= dt;
+      if (!s.trail) s.trail = [];
+      s.trail.push({ x: s.x, y: s.y });
+      if (s.trail.length > 8) s.trail.shift();
       var hit = null;
       var hitD = 18;
       if (s.side === 1 && Math.abs(s.x - ENEMY_BASE_X) < 22 && s.y < GROUND) {
@@ -563,6 +573,12 @@
   function tick(dt) {
     if (!state || state.paused || state.over) return;
     dt = Math.min(dt, 0.05);
+    if (hitStop > 0) {
+      hitStop -= dt;
+      stepFx(dt * 0.35);
+      return;
+    }
+    if (shotSfxGate > 0) shotSfxGate -= dt;
     state.elapsed += dt;
     state.gold += state.income * dt;
     state.egold += state.eincome * dt;
@@ -577,134 +593,45 @@
     stepFx(dt);
   }
 
-  function drawKeep(x, facing, color, deep, hp, hpMax) {
-    ctx.save();
-    ctx.translate(x, GROUND);
-    ctx.fillStyle = deep;
-    ctx.fillRect(-28 * facing, -118, 46 * facing, 118);
-    ctx.fillStyle = color;
-    ctx.fillRect(-20 * facing, -108, 32 * facing, 28);
-    ctx.fillRect(-8 * facing, -148, 16 * facing, 40);
-    ctx.beginPath();
-    ctx.moveTo(-30 * facing, -118);
-    ctx.lineTo(0, -168);
-    ctx.lineTo(26 * facing, -118);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = tokens["--color-paper"];
-    ctx.fillRect(-6 * facing, -72, 14 * facing, 22);
-    ctx.fillStyle = color;
-    ctx.fillRect(-2 * facing, -132, 6 * facing, 18);
-    ctx.beginPath();
-    ctx.arc(1 * facing, -136, 5, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-    var ratio = hpMax ? hp / hpMax : 0;
-    ctx.fillStyle = tokens["--color-paper-3"];
-    ctx.fillRect(x - 36, GROUND - 184, 72, 7);
-    ctx.fillStyle = ratio < 0.34 ? tokens["--color-hp-low"] : tokens["--color-hp"];
-    ctx.fillRect(x - 36, GROUND - 184, 72 * ratio, 7);
+  function drawKeep(x, facing, hp, hpMax, turret, side) {
+    window.BronzeArt.paintKeep(ctx, x, facing, hp, hpMax, turret, tokens, side, state.elapsed, GROUND);
   }
 
   function drawUnit(unit) {
-    var def = UNIT_DEFS[unit.type];
-    var color = unit.side === 1 ? tokens["--color-player"] : tokens["--color-enemy"];
-    var deep = unit.side === 1 ? tokens["--color-player-deep"] : tokens["--color-enemy-deep"];
-    var dir = unit.side;
-    var bob = unit.walking ? Math.sin(state.elapsed * 10 + unit.x * 0.05) * 1.4 : 0;
-    ctx.save();
-    ctx.translate(unit.x, unit.y + bob);
-    ctx.scale(dir, 1);
-    ctx.fillStyle = deep;
-    if (def.kind === "melee" && def.speed > 60) {
-      ctx.fillRect(-16, -8, 28, 8);
-      ctx.fillStyle = color;
-      ctx.fillRect(-4, -26, 10, 20);
-    } else if (unit.type === "ram") {
-      ctx.fillRect(-22, -16, 40, 14);
-      ctx.fillStyle = color;
-      ctx.beginPath();
-      ctx.arc(-10, -2, 5, 0, Math.PI * 2);
-      ctx.arc(12, -2, 5, 0, Math.PI * 2);
-      ctx.fill();
-    } else if (def.kind === "range") {
-      ctx.fillRect(-5, -22, 8, 20);
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.arc(8, -18, 10, -0.9, 0.9);
-      ctx.stroke();
-    } else {
-      ctx.fillRect(-6, -24, 11, 22);
-      ctx.fillStyle = color;
-      ctx.fillRect(4, -28, 16, 2);
+    window.BronzeArt.paintUnit(ctx, unit, UNIT_DEFS[unit.type], tokens, state.elapsed);
+  }
+
+  function fitCanvas() {
+    var frame = canvas.parentElement;
+    var dw = Math.max(1, frame.clientWidth);
+    var dh = Math.max(1, frame.clientHeight);
+    if (canvas.width !== dw || canvas.height !== dh) {
+      canvas.width = dw;
+      canvas.height = dh;
     }
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.arc(0, -30, 5, 0, Math.PI * 2);
-    ctx.fill();
-    if (unit.type === "banner") {
-      ctx.fillRect(8, -48, 14, 10);
+    var scale = dw / W;
+    var oy = dh - H * scale;
+    if (oy < 0) {
+      scale = dh / H;
+      oy = 0;
     }
-    if (unit.type === "shield") {
-      ctx.beginPath();
-      ctx.ellipse(-8, -16, 7, 10, 0, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.restore();
-    var ratio = unit.hp / unit.hpMax;
-    ctx.fillStyle = tokens["--color-paper-3"];
-    ctx.fillRect(unit.x - 12, unit.y - 42, 24, 3);
-    ctx.fillStyle = ratio < 0.35 ? tokens["--color-hp-low"] : tokens["--color-hp"];
-    ctx.fillRect(unit.x - 12, unit.y - 42, 24 * ratio, 3);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.fillStyle = tokens["--color-sky"] || "#141820";
+    ctx.fillRect(0, 0, dw, dh);
+    ctx.setTransform(scale, 0, 0, scale, 0, oy);
   }
 
   function drawField() {
-    ctx.clearRect(0, 0, W, H);
-    var sky = ctx.createLinearGradient(0, 0, 0, H);
-    sky.addColorStop(0, tokens["--color-sky"]);
-    sky.addColorStop(0.62, tokens["--color-horizon"]);
-    sky.addColorStop(1, tokens["--color-ground"]);
-    ctx.fillStyle = sky;
-    ctx.fillRect(0, 0, W, H);
-
-    ctx.fillStyle = tokens["--color-paper-3"];
-    ctx.beginPath();
-    ctx.moveTo(0, GROUND - 8);
-    ctx.lineTo(0, 268);
-    ctx.quadraticCurveTo(160, 228, 310, 262);
-    ctx.quadraticCurveTo(480, 214, 640, 256);
-    ctx.quadraticCurveTo(820, 230, W, 260);
-    ctx.lineTo(W, GROUND - 8);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = tokens["--color-paper-2"];
-    ctx.beginPath();
-    ctx.moveTo(240, GROUND - 8);
-    ctx.quadraticCurveTo(400, 236, 560, GROUND - 8);
-    ctx.closePath();
-    ctx.fill();
-
-    ctx.fillStyle = tokens["--color-ground"];
-    ctx.fillRect(0, GROUND - 8, W, H - GROUND + 8);
-    ctx.fillStyle = tokens["--color-road"];
-    ctx.beginPath();
-    ctx.moveTo(0, GROUND + 8);
-    ctx.quadraticCurveTo(W / 2, GROUND - 18, W, GROUND + 10);
-    ctx.lineTo(W, H);
-    ctx.lineTo(0, H);
-    ctx.closePath();
-    ctx.fill();
-
-    ctx.fillStyle = tokens["--color-accent"];
-    ctx.globalAlpha = 0.18;
-    ctx.beginPath();
-    ctx.arc(W * 0.72, 78, 46, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.globalAlpha = 1;
-
-    drawKeep(PLAYER_BASE_X, 1, tokens["--color-player"], tokens["--color-player-deep"], state.php, state.phpMax);
-    drawKeep(ENEMY_BASE_X, -1, tokens["--color-enemy"], tokens["--color-enemy-deep"], state.ehp, state.ehpMax);
+    fitCanvas();
+    window.BronzeArt.paintWorld(ctx, {
+      w: W,
+      h: H,
+      ground: GROUND,
+      t: state.elapsed,
+      tokens: tokens
+    });
+    drawKeep(PLAYER_BASE_X, 1, state.php, state.phpMax, state.turret, 1);
+    drawKeep(ENEMY_BASE_X, -1, state.ehp, state.ehpMax, state.eturret, -1);
 
     if (state.horn > 0) {
       ctx.strokeStyle = tokens["--color-accent"];
@@ -718,17 +645,15 @@
 
     state.units.forEach(drawUnit);
 
-    ctx.fillStyle = tokens["--color-accent"];
     state.shots.forEach(function (s) {
-      ctx.beginPath();
-      ctx.arc(s.x, s.y, 2.4, 0, Math.PI * 2);
-      ctx.fill();
+      window.BronzeArt.paintShot(ctx, s, tokens);
     });
 
     state.parts.forEach(function (p) {
       ctx.globalAlpha = clamp(p.life * 2, 0, 1);
       ctx.fillStyle = p.color;
-      ctx.fillRect(p.x, p.y, 3, 3);
+      var sz = p.size || 3;
+      ctx.fillRect(p.x, p.y, sz, sz);
     });
     ctx.globalAlpha = 1;
 
@@ -740,12 +665,6 @@
     });
     ctx.globalAlpha = 1;
 
-    ctx.fillStyle = tokens["--color-ink-2"];
-    ctx.font = "500 13px " + tokens["--font-body"];
-    ctx.fillText("己營", 18, 28);
-    ctx.textAlign = "right";
-    ctx.fillText("敵營", W - 18, 28);
-    ctx.textAlign = "left";
   }
 
   function paintHud() {
@@ -753,9 +672,7 @@
     document.getElementById("play-title").textContent = state.spec.name;
     document.getElementById("hud-age").textContent = AGE_NAMES[state.age];
     document.getElementById("hud-gold").textContent = String(Math.floor(state.gold));
-    document.getElementById("hud-income").textContent = state.income.toFixed(1) + "／秒";
-    document.getElementById("hud-php").textContent = String(Math.ceil(state.php));
-    document.getElementById("hud-ehp").textContent = String(Math.ceil(state.ehp));
+    document.getElementById("hud-income").textContent = "+" + state.income.toFixed(1) + "／秒";
     document.getElementById("console-hint").textContent = state.hint;
     refreshButtons();
   }
@@ -776,54 +693,78 @@
       btn.classList.toggle("is-locked", locked);
       setDisabled(btn, locked || poor || !!state.over);
       btn.querySelector(".u-meta").textContent = locked
-        ? AGE_NAMES[def.age] + "解鎖 · " + def.cost + " 金"
-        : def.cost + " 金 · " + (def.kind === "range" ? "遠程" : "近戰");
+        ? AGE_NAMES[def.age]
+        : String(def.cost);
     });
     var ageBtn = document.getElementById("cmd-age");
     if (ageBtn) {
       var next = state.age + 1;
       setDisabled(ageBtn, state.age >= 2 || state.gold < AGE_COST[next] || !!state.over);
-      ageBtn.querySelector(".u-name").textContent = state.age >= 2 ? "年代已滿" : "升到" + AGE_NAMES[next];
-      ageBtn.querySelector(".u-meta").textContent = state.age >= 2 ? "鑄鋼" : AGE_COST[next] + " 金";
+      ageBtn.querySelector(".u-name").textContent = state.age >= 2 ? "滿" : AGE_NAMES[next];
+      ageBtn.querySelector(".u-meta").textContent = state.age >= 2 ? "—" : String(AGE_COST[next]);
     }
     var turBtn = document.getElementById("cmd-turret");
     if (turBtn) {
       setDisabled(turBtn, state.turret >= 3 || state.gold < TURRET_COST[state.turret + 1] || !!state.over);
-      turBtn.querySelector(".u-name").textContent = state.turret >= 3 ? "砲塔已滿" : "升砲塔";
-      turBtn.querySelector(".u-meta").textContent = state.turret >= 3 ? "4 級" : TURRET_COST[state.turret + 1] + " 金 · 現 " + (state.turret + 1) + " 級";
+      turBtn.querySelector(".u-name").textContent = state.turret >= 3 ? "滿" : "砲塔";
+      turBtn.querySelector(".u-meta").textContent = state.turret >= 3 ? "4" : String(TURRET_COST[state.turret + 1]);
     }
     var hornBtn = document.getElementById("cmd-horn");
     if (hornBtn) {
       setDisabled(hornBtn, state.hornCd > 0 || !!state.over);
-      hornBtn.querySelector(".u-meta").textContent = state.hornCd > 0 ? Math.ceil(state.hornCd) + " 秒冷卻" : "8 秒增傷";
+      hornBtn.querySelector(".u-meta").textContent = state.hornCd > 0 ? Math.ceil(state.hornCd) + "s" : "增傷";
     }
     var volBtn = document.getElementById("cmd-volley");
     if (volBtn) {
       var volLock = state.age < 1 || state.volleyCd > 0;
       setDisabled(volBtn, volLock || !!state.over);
       volBtn.querySelector(".u-meta").textContent = state.age < 1
-        ? "鐵器解鎖"
-        : (state.volleyCd > 0 ? Math.ceil(state.volleyCd) + " 秒冷卻" : "打中段敵兵");
+        ? "鐵器"
+        : (state.volleyCd > 0 ? Math.ceil(state.volleyCd) + "s" : "中段");
     }
   }
 
   function renderUnitBar() {
+    var age = state ? state.age : 0;
+    var shown = UNIT_ORDER.filter(function (id) {
+      return UNIT_DEFS[id].age <= age;
+    });
     var row = document.getElementById("unit-row");
-    row.innerHTML = UNIT_ORDER.map(function (id, i) {
+    row.innerHTML = shown.map(function (id) {
       var def = UNIT_DEFS[id];
+      var key = UNIT_ORDER.indexOf(id) + 1;
       return (
         '<button type="button" class="unit-btn" id="unit-' + id + '" data-unit="' + id + '">' +
-          '<span class="u-name">' + (i + 1) + " " + def.name + "</span>" +
-          '<span class="u-meta">' + def.cost + " 金</span>" +
+          '<span class="u-key">' + key + "</span>" +
+          '<canvas class="u-glyph" width="72" height="52" aria-hidden="true"></canvas>' +
+          '<span class="u-name">' + def.name + "</span>" +
+          '<span class="u-meta">' + def.cost + "</span>" +
         "</button>"
       );
     }).join("");
-    document.getElementById("cmd-row").innerHTML = [
-      '<button type="button" class="cmd-btn" id="cmd-age"><span class="u-name">升年代</span><span class="u-meta">A</span></button>',
-      '<button type="button" class="cmd-btn" id="cmd-turret"><span class="u-name">升砲塔</span><span class="u-meta">T</span></button>',
-      '<button type="button" class="cmd-btn" id="cmd-horn"><span class="u-name">戰號</span><span class="u-meta">H</span></button>',
-      '<button type="button" class="cmd-btn" id="cmd-volley"><span class="u-name">火箭</span><span class="u-meta">V</span></button>'
-    ].join("");
+    var cmds = [
+      '<button type="button" class="cmd-btn" id="cmd-age" data-cmd="age"><span class="u-key">A</span><canvas class="u-glyph" width="72" height="52" aria-hidden="true"></canvas><span class="u-name">年代</span><span class="u-meta"></span></button>',
+      '<button type="button" class="cmd-btn" id="cmd-turret" data-cmd="turret"><span class="u-key">T</span><canvas class="u-glyph" width="72" height="52" aria-hidden="true"></canvas><span class="u-name">砲塔</span><span class="u-meta"></span></button>',
+      '<button type="button" class="cmd-btn" id="cmd-horn" data-cmd="horn"><span class="u-key">H</span><canvas class="u-glyph" width="72" height="52" aria-hidden="true"></canvas><span class="u-name">戰號</span><span class="u-meta"></span></button>'
+    ];
+    if (age >= 1) {
+      cmds.push('<button type="button" class="cmd-btn" id="cmd-volley" data-cmd="volley"><span class="u-key">V</span><canvas class="u-glyph" width="72" height="52" aria-hidden="true"></canvas><span class="u-name">火箭</span><span class="u-meta"></span></button>');
+    }
+    document.getElementById("cmd-row").innerHTML = cmds.join("");
+    paintDockGlyphs();
+  }
+
+  function paintDockGlyphs() {
+    UNIT_ORDER.forEach(function (id) {
+      var btn = document.getElementById("unit-" + id);
+      if (!btn) return;
+      window.BronzeArt.paintGlyph(btn.querySelector("canvas"), id, tokens, 1);
+    });
+    ["age", "turret", "horn", "volley"].forEach(function (cmd) {
+      var btn = document.querySelector('[data-cmd="' + cmd + '"]');
+      if (!btn) return;
+      window.BronzeArt.paintCmdGlyph(btn.querySelector("canvas"), cmd, tokens);
+    });
   }
 
   function renderCampaign() {
@@ -836,38 +777,73 @@
           '<span class="campaign-idx">' + String(i + 1).padStart(2, "0") + "</span>" +
           '<div class="campaign-copy"><h3>' + b.name + "</h3><p>" + b.blurb + "</p></div>" +
           (open
-            ? '<button type="button" class="btn-primary" data-battle="' + i + '">進入這場</button>'
+            ? '<button type="button" class="btn-primary" data-battle="' + i + '">打</button>'
             : '<button type="button" class="btn-ghost" disabled>未開</button>') +
         "</li>"
       );
     }).join("");
   }
 
+  function nextBattleIndex() {
+    var unlocked = loadProgress().unlocked;
+    if (unlocked > 8) return 0;
+    return Math.min(unlocked, 8) - 1;
+  }
+
   function renderMenuMeta() {
     var unlocked = loadProgress().unlocked;
     var el = document.getElementById("progress-stat");
-    var copy = document.getElementById("progress-copy");
+    var go = document.getElementById("btn-continue");
+    var idx = nextBattleIndex();
     if (unlocked > 8) {
-      el.textContent = "八場都過了";
-      copy.textContent = "戰役表仍可重打。想換節奏就從河岸斥候再走一輪。";
+      el.textContent = "八場都過了 · 可重征任何一場";
+      go.textContent = "再征 · " + BATTLES[0].name;
+    } else if (unlocked === 1) {
+      el.textContent = "第 1 戰 · " + BATTLES[0].name;
+      go.textContent = "開戰";
     } else {
-      el.textContent = "下一場 · " + BATTLES[Math.min(unlocked, 8) - 1].name;
-      copy.textContent = unlocked === 1
-        ? "從河岸斥候開始。過關會解鎖下一場，存在這台瀏覽器裡。"
-        : "已打開第 " + unlocked + " 場。進度只留在這台瀏覽器。";
+      el.textContent = "下一場 · " + BATTLES[idx].name;
+      go.textContent = "繼續 · " + BATTLES[idx].name;
     }
+    go.setAttribute("data-continue", String(idx));
   }
 
   function showScreen(id) {
-    ["menu", "battles", "how", "play"].forEach(function (name) {
+    ["menu", "battles", "play"].forEach(function (name) {
       var el = document.getElementById("screen-" + name);
       var on = name === id;
       el.hidden = !on;
       el.classList.toggle("is-on", on);
     });
-    document.getElementById("nav").classList.toggle("is-play", id === "play");
     document.body.classList.toggle("is-play", id === "play");
+    document.body.classList.toggle("is-title", id === "menu");
+    document.body.classList.toggle("is-select", id === "battles");
     if (id !== "play") stopLoop();
+    if (id === "menu") {
+      startTitleLoop();
+      if (window.BronzeAudio) window.BronzeAudio.startBed("title");
+    } else {
+      stopTitleLoop();
+      if (id !== "play" && window.BronzeAudio) window.BronzeAudio.startBed("title");
+    }
+  }
+
+  function startTitleLoop() {
+    if (titleRaf) return;
+    function tickTitle(ts) {
+      if (!document.body.classList.contains("is-title")) {
+        titleRaf = 0;
+        return;
+      }
+      window.BronzeArt.paintTitle(document.getElementById("title-field"), tokens, ts / 1000);
+      titleRaf = requestAnimationFrame(tickTitle);
+    }
+    titleRaf = requestAnimationFrame(tickTitle);
+  }
+
+  function stopTitleLoop() {
+    if (titleRaf) cancelAnimationFrame(titleRaf);
+    titleRaf = 0;
   }
 
   function showOverlay(title, copy, kind) {
@@ -877,17 +853,18 @@
     var actions = document.getElementById("overlay-actions");
     var buttons = [];
     if (kind === "pause") {
-      buttons.push('<button type="button" class="btn-primary" data-act="resume">繼續打</button>');
-      buttons.push('<button type="button" class="btn-ghost" data-act="leave">回到戰役表</button>');
+      buttons.push('<button type="button" class="btn-primary" data-act="resume">繼續</button>');
+      buttons.push('<button type="button" class="btn-ghost" data-act="mute">' + (audio.mute ? "聲音關" : "聲音開") + "</button>");
+      buttons.push('<button type="button" class="btn-ghost" data-act="leave">撤出</button>');
     } else if (kind === "win") {
       if (state.index < 7) {
         buttons.push('<button type="button" class="btn-primary" data-act="next">下一場</button>');
       }
       buttons.push('<button type="button" class="btn-ghost" data-act="again">再打這場</button>');
-      buttons.push('<button type="button" class="btn-ghost" data-act="leave">戰役表</button>');
+      buttons.push('<button type="button" class="btn-ghost" data-act="leave">戰役</button>');
     } else {
       buttons.push('<button type="button" class="btn-primary" data-act="again">再打這場</button>');
-      buttons.push('<button type="button" class="btn-ghost" data-act="leave">戰役表</button>');
+      buttons.push('<button type="button" class="btn-ghost" data-act="leave">戰役</button>');
     }
     actions.innerHTML = buttons.join("");
     box.hidden = false;
@@ -899,16 +876,17 @@
 
   function startBattle(index) {
     readTokens();
+    ensureAudio();
     state = createBattle(index);
+    hitStop = 0;
     renderUnitBar();
     paintHud();
     showScreen("play");
+    if (window.BronzeAudio) window.BronzeAudio.startBed("battle");
     hideOverlay();
     lastTs = 0;
     stopLoop();
     raf = requestAnimationFrame(loop);
-    document.getElementById("btn-pause").setAttribute("aria-pressed", "false");
-    document.getElementById("btn-pause").textContent = "暫停";
   }
 
   function stopLoop() {
@@ -930,25 +908,36 @@
   function togglePause() {
     if (!state || state.over) return;
     state.paused = !state.paused;
-    document.getElementById("btn-pause").setAttribute("aria-pressed", state.paused ? "true" : "false");
-    document.getElementById("btn-pause").textContent = state.paused ? "繼續" : "暫停";
     if (state.paused) showOverlay("暫停", "戰場停住。金幣與出兵都暫停。", "pause");
     else hideOverlay();
   }
 
+  function leaveBattle() {
+    state = null;
+    hitStop = 0;
+    hideOverlay();
+    showScreen("battles");
+    renderMenuMeta();
+    if (window.BronzeAudio) window.BronzeAudio.startBed("title");
+  }
+
+  function setHowOpen(on) {
+    document.getElementById("panel-how").hidden = !on;
+  }
+
   function bind() {
-    document.getElementById("nav").addEventListener("click", function (ev) {
-      var go = ev.target.closest("[data-screen]");
-      if (!go) return;
-      ev.preventDefault();
-      if (state && !state.over && !document.getElementById("screen-play").hidden) {
-        if (!window.confirm("現在撤出會輸掉這一場。要回選單嗎？")) return;
-        state = null;
-      }
-      showScreen(go.getAttribute("data-screen"));
+    document.getElementById("btn-continue").addEventListener("click", function () {
+      startBattle(Number(this.getAttribute("data-continue") || nextBattleIndex()));
     });
 
-    document.getElementById("screen-menu").addEventListener("click", function (ev) {
+    document.getElementById("btn-how").addEventListener("click", function () {
+      setHowOpen(true);
+    });
+    document.getElementById("btn-how-close").addEventListener("click", function () {
+      setHowOpen(false);
+    });
+
+    document.getElementById("app").addEventListener("click", function (ev) {
       var go = ev.target.closest("[data-screen]");
       if (!go) return;
       showScreen(go.getAttribute("data-screen"));
@@ -976,20 +965,10 @@
       if (cmd.id === "cmd-volley") tryVolley();
     });
 
-    document.getElementById("btn-pause").addEventListener("click", togglePause);
-    document.getElementById("btn-retreat").addEventListener("click", function () {
+    document.getElementById("btn-menu").addEventListener("click", function () {
       if (!state) return;
-      if (state.over || window.confirm("撤出這一場，回到戰役表？")) {
-        state = null;
-        hideOverlay();
-        showScreen("battles");
-      }
-    });
-    document.getElementById("btn-mute").addEventListener("click", function () {
-      audio.mute = !audio.mute;
-      saveProgress({ mute: audio.mute });
-      this.setAttribute("aria-pressed", audio.mute ? "true" : "false");
-      this.textContent = audio.mute ? "聲音關" : "聲音開";
+      if (state.over) return;
+      if (!state.paused) togglePause();
     });
 
     document.getElementById("overlay-actions").addEventListener("click", function (ev) {
@@ -998,26 +977,34 @@
       var act = btn.getAttribute("data-act");
       if (act === "resume") {
         state.paused = false;
-        document.getElementById("btn-pause").setAttribute("aria-pressed", "false");
-        document.getElementById("btn-pause").textContent = "暫停";
         hideOverlay();
+      } else if (act === "mute") {
+        audio.mute = !audio.mute;
+        if (window.BronzeAudio) window.BronzeAudio.setMute(audio.mute);
+        saveProgress({ mute: audio.mute });
+        btn.textContent = audio.mute ? "聲音關" : "聲音開";
+        if (!audio.mute) {
+          ensureAudio();
+          window.BronzeAudio.startBed(state && !state.over ? "battle" : "title");
+        }
       } else if (act === "again") {
         startBattle(state.index);
       } else if (act === "next") {
         startBattle(state.index + 1);
       } else if (act === "leave") {
-        state = null;
-        hideOverlay();
-        showScreen("battles");
-        renderMenuMeta();
+        leaveBattle();
       }
     });
 
     window.addEventListener("keydown", function (ev) {
+      if (!document.getElementById("panel-how").hidden && ev.key === "Escape") {
+        setHowOpen(false);
+        return;
+      }
       if (!state || document.getElementById("screen-play").hidden) return;
       if (ev.target && /input|textarea|select/i.test(ev.target.tagName)) return;
       var key = ev.key.toLowerCase();
-      if (ev.code === "Space") {
+      if (ev.code === "Space" || ev.key === "Escape") {
         ev.preventDefault();
         togglePause();
         return;
@@ -1037,19 +1024,29 @@
   function init() {
     readTokens();
     audio.mute = loadProgress().mute;
-    var muteBtn = document.getElementById("btn-mute");
-    muteBtn.setAttribute("aria-pressed", audio.mute ? "true" : "false");
-    muteBtn.textContent = audio.mute ? "聲音關" : "聲音開";
+    if (window.BronzeAudio) window.BronzeAudio.setMute(audio.mute);
     renderMenuMeta();
     renderCampaign();
     bind();
     function applyHash() {
       var hash = (location.hash || "").replace("#", "");
-      if (hash === "battles" || hash === "how" || hash === "menu") showScreen(hash);
-      else showScreen("menu");
+      if (hash === "battles") showScreen("battles");
+      else if (hash === "how") {
+        showScreen("menu");
+        setHowOpen(true);
+      } else {
+        showScreen("menu");
+      }
     }
     window.addEventListener("hashchange", applyHash);
     applyHash();
+    document.addEventListener("pointerdown", function once() {
+      ensureAudio();
+      if (!audio.mute && window.BronzeAudio) {
+        window.BronzeAudio.startBed(document.body.classList.contains("is-play") ? "battle" : "title");
+      }
+      document.removeEventListener("pointerdown", once);
+    }, { once: true });
   }
 
   window.BronzeFront = {
