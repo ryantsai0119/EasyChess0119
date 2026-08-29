@@ -10,14 +10,14 @@
   var LANE_Y = [508, 538, 568];
 
   var UNIT_DEFS = {
-    spear:    { name: "矛兵", age: 0, cost: 15,  hp: 40,  atk: 7,  range: 22,  speed: 42, reload: 0.72, kind: "melee", siege: 1 },
-    sling:    { name: "投石", age: 0, cost: 22,  hp: 24,  atk: 7,  range: 108, speed: 36, reload: 0.95, kind: "range", siege: 0.7 },
+    spear:    { name: "矛兵", age: 0, cost: 17,  hp: 40,  atk: 7,  range: 22,  speed: 42, reload: 0.72, kind: "melee", siege: 1 },
+    sling:    { name: "投石", age: 0, cost: 20,  hp: 24,  atk: 8,  range: 108, speed: 36, reload: 0.95, kind: "range", siege: 0.7 },
     scout:    { name: "斥候", age: 0, cost: 28,  hp: 32,  atk: 11, range: 20,  speed: 68, reload: 0.62, kind: "melee", siege: 0.8 },
     shield:   { name: "重盾", age: 1, cost: 48,  hp: 110, atk: 13, range: 24,  speed: 30, reload: 0.85, kind: "melee", siege: 1 },
-    archer:   { name: "弓手", age: 1, cost: 55,  hp: 34,  atk: 13, range: 142, speed: 38, reload: 0.88, kind: "range", siege: 0.75 },
+    archer:   { name: "弓手", age: 1, cost: 50,  hp: 34,  atk: 14, range: 142, speed: 38, reload: 0.88, kind: "range", siege: 0.75 },
     rider:    { name: "騎手", age: 1, cost: 78,  hp: 62,  atk: 20, range: 22,  speed: 78, reload: 0.7,  kind: "melee", siege: 0.9 },
     ram:      { name: "攻城槌", age: 2, cost: 120, hp: 170, atk: 16, range: 26,  speed: 24, reload: 1.05, kind: "melee", siege: 3.2 },
-    ballista: { name: "連弩", age: 2, cost: 140, hp: 52,  atk: 24, range: 188, speed: 28, reload: 1.15, kind: "range", siege: 1.4 },
+    ballista: { name: "連弩", age: 2, cost: 125, hp: 52,  atk: 24, range: 188, speed: 28, reload: 1.05, kind: "range", siege: 1.4 },
     banner:   { name: "旗手", age: 2, cost: 190, hp: 175, atk: 30, range: 26,  speed: 44, reload: 0.68, kind: "melee", siege: 1.2 }
   };
 
@@ -36,11 +36,11 @@
     { name: "河岸斥候", blurb: "敵軍只會出銅器。先學會存錢再推。", playerGold: 95, playerIncome: 9, playerHp: 440, enemyGold: 28, enemyIncome: 4.4, enemyHp: 340, enemyMaxAge: 0, enemyStartAge: 0, enemyAgeAt: 999, aiGap: 1.15, aiSave: 0.22 },
     { name: "渡口爭奪", blurb: "對面上投石了。用斥候繞、用矛兵頂。", playerGold: 90, playerIncome: 9.2, playerHp: 460, enemyGold: 40, enemyIncome: 5.4, enemyHp: 380, enemyMaxAge: 0, enemyStartAge: 0, enemyAgeAt: 999, aiGap: 1.02, aiSave: 0.18 },
     { name: "丘陵營地", blurb: "敵營較厚。這場開始要考慮升鐵器。", playerGold: 100, playerIncome: 9.6, playerHp: 480, enemyGold: 55, enemyIncome: 6.2, enemyHp: 460, enemyMaxAge: 0, enemyStartAge: 0, enemyAgeAt: 999, aiGap: 0.95, aiSave: 0.16 },
-    { name: "鐵器初現", blurb: "對方會升到鐵器。你的年代不能落後太久。", playerGold: 110, playerIncome: 10, playerHp: 500, enemyGold: 90, enemyIncome: 7.2, enemyHp: 520, enemyMaxAge: 1, enemyStartAge: 0, enemyAgeAt: 18, aiGap: 0.84, aiSave: 0.14 },
-    { name: "關隘夜襲", blurb: "進帳更快，雙方都在搶節奏。", playerGold: 120, playerIncome: 10.6, playerHp: 520, enemyGold: 120, enemyIncome: 8.2, enemyHp: 560, enemyMaxAge: 1, enemyStartAge: 1, enemyAgeAt: 36, aiGap: 0.76, aiSave: 0.12 },
-    { name: "鑄鋼對峙", blurb: "敵方會摸到鑄鋼。攻城槌是拆營的刀。", playerGold: 130, playerIncome: 11, playerHp: 560, enemyGold: 160, enemyIncome: 9.0, enemyHp: 640, enemyMaxAge: 2, enemyStartAge: 1, enemyAgeAt: 28, aiGap: 0.7, aiSave: 0.12 },
-    { name: "攻城前夜", blurb: "厚營、連弩、旗手。亂出會被射穿。", playerGold: 140, playerIncome: 11.6, playerHp: 600, enemyGold: 200, enemyIncome: 12.4, enemyHp: 760, enemyMaxAge: 2, enemyStartAge: 1, enemyAgeAt: 20, aiGap: 0.64, aiSave: 0.1 },
-    { name: "王庭決戰", blurb: "最後一場。對方幾乎不手軟。", playerGold: 160, playerIncome: 12.2, playerHp: 680, enemyGold: 280, enemyIncome: 13.8, enemyHp: 880, enemyMaxAge: 2, enemyStartAge: 2, enemyAgeAt: 12, aiGap: 0.52, aiSave: 0.06 }
+    { name: "鐵器初現", blurb: "對方會升到鐵器。你的年代不能落後太久。", playerGold: 110, playerIncome: 10, playerHp: 500, enemyGold: 85, enemyIncome: 6.9, enemyHp: 500, enemyMaxAge: 1, enemyStartAge: 0, enemyAgeAt: 22, aiGap: 0.90, aiSave: 0.15 },
+    { name: "關隘夜襲", blurb: "對方稍後升鐵器。先用銅器頂住，再追年代。", playerGold: 120, playerIncome: 10.6, playerHp: 520, enemyGold: 110, enemyIncome: 7.5, enemyHp: 530, enemyMaxAge: 1, enemyStartAge: 0, enemyAgeAt: 20, aiGap: 0.84, aiSave: 0.13 },
+    { name: "鑄鋼對峙", blurb: "敵方會摸到鑄鋼。攻城槌是拆營的刀。", playerGold: 135, playerIncome: 11.4, playerHp: 580, enemyGold: 130, enemyIncome: 8.0, enemyHp: 580, enemyMaxAge: 2, enemyStartAge: 1, enemyAgeAt: 36, aiGap: 0.80, aiSave: 0.12 },
+    { name: "攻城前夜", blurb: "厚營、連弩、旗手。亂出會被射穿。", playerGold: 155, playerIncome: 12.6, playerHp: 640, enemyGold: 160, enemyIncome: 10.2, enemyHp: 680, enemyMaxAge: 2, enemyStartAge: 1, enemyAgeAt: 28, aiGap: 0.74, aiSave: 0.10 },
+    { name: "王庭決戰", blurb: "最後一場。對方會追到鑄鋼，但你也有喘息空間。", playerGold: 180, playerIncome: 13.4, playerHp: 740, enemyGold: 200, enemyIncome: 11.4, enemyHp: 780, enemyMaxAge: 2, enemyStartAge: 1, enemyAgeAt: 20, aiGap: 0.64, aiSave: 0.09 }
   ];
 
   var canvas = document.getElementById("field");
