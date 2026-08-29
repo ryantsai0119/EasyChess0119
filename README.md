@@ -6,7 +6,7 @@
 
 ## 技術備註
 
-引擎／效能結論見 TECH_REVIEW.md；平衡／難度見 BALANCE_REPORT.md。
+引擎／效能結論見 TECH_REVIEW.md；平衡／難度見 BALANCE_REPORT.md；QA 見 QA_REPORT.md。
 
 ## 線上
 

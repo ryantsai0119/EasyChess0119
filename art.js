@@ -234,135 +234,279 @@
     ctx.lineJoin = "round";
     ctx.lineCap = "round";
 
-    function legs(spread) {
-      ctx.fillStyle = deep;
-      ctx.fillRect(-5, -8, 4, 10);
-      ctx.fillRect(spread, -8, 4, 10);
-    }
-    function torso() {
-      ctx.fillStyle = deep;
-      ctx.fillRect(-6, -24, 12, 16);
-    }
-    function head(helmet) {
-      ctx.fillStyle = color;
-      ctx.beginPath();
-      ctx.arc(0, -30, 5.2, 0, Math.PI * 2);
-      ctx.fill();
-      if (helmet) {
-        ctx.fillStyle = metal;
-        ctx.fillRect(-6, -34, 12, 4);
-      }
-    }
-
     if (type === "rider") {
       ctx.fillStyle = deep;
       ctx.beginPath();
-      ctx.ellipse(-2, -6, 16, 7, 0, 0, Math.PI * 2);
+      ctx.ellipse(-2, -8, 18, 8, -0.1, 0, Math.PI * 2);
       ctx.fill();
-      ctx.fillRect(-14, -4, 3, 10);
-      ctx.fillRect(8, -4, 3, 10);
-      ctx.fillRect(-18, -12, 8, 6);
-      ctx.fillStyle = color;
-      ctx.fillRect(-4, -22, 8, 12);
+      ctx.fillRect(-16, -6, 4, 12);
+      ctx.fillRect(10, -6, 4, 12);
       ctx.beginPath();
-      ctx.arc(-1, -26, 4.5, 0, Math.PI * 2);
+      ctx.moveTo(-22, -14);
+      ctx.lineTo(-12, -10);
+      ctx.lineTo(-18, -4);
+      ctx.fill();
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.moveTo(-6, -14);
+      ctx.lineTo(4, -14);
+      ctx.lineTo(6, -28);
+      ctx.lineTo(-4, -28);
+      ctx.closePath();
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(0, -32, 5, 0, Math.PI * 2);
       ctx.fill();
       ctx.fillStyle = metal;
-      ctx.fillRect(6, -20, 14, 2);
+      ctx.fillRect(4, -26, 16, 2.4);
+      ctx.beginPath();
+      ctx.moveTo(20, -26);
+      ctx.lineTo(26, -22);
+      ctx.lineTo(20, -23);
+      ctx.fill();
       return;
     }
     if (type === "ram") {
       ctx.fillStyle = deep;
-      ctx.fillRect(-20, -14, 38, 10);
+      ctx.fillRect(-22, -16, 40, 12);
+      ctx.fillRect(-18, -22, 8, 8);
       ctx.fillStyle = metal;
       ctx.beginPath();
-      ctx.arc(20, -9, 6, 0, Math.PI * 2);
+      ctx.moveTo(18, -20);
+      ctx.lineTo(30, -10);
+      ctx.lineTo(18, -4);
+      ctx.closePath();
       ctx.fill();
       ctx.fillStyle = color;
       ctx.beginPath();
-      ctx.arc(-10, -2, 5, 0, Math.PI * 2);
-      ctx.arc(8, -2, 5, 0, Math.PI * 2);
+      ctx.arc(-12, -2, 5.5, 0, Math.PI * 2);
+      ctx.arc(6, -2, 5.5, 0, Math.PI * 2);
       ctx.fill();
       return;
     }
     if (type === "ballista") {
       ctx.fillStyle = deep;
-      ctx.fillRect(-14, -10, 26, 8);
+      ctx.fillRect(-16, -12, 30, 10);
       ctx.fillStyle = color;
       ctx.beginPath();
-      ctx.arc(-8, -1, 4, 0, Math.PI * 2);
-      ctx.arc(8, -1, 4, 0, Math.PI * 2);
+      ctx.arc(-10, -1, 4.5, 0, Math.PI * 2);
+      ctx.arc(8, -1, 4.5, 0, Math.PI * 2);
       ctx.fill();
       ctx.strokeStyle = metal;
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 2.4;
       ctx.beginPath();
-      ctx.arc(10, -18, 12, -0.9, 0.9);
+      ctx.arc(12, -22, 14, -1.05, 1.05);
       ctx.stroke();
       ctx.fillStyle = metal;
-      ctx.fillRect(4, -20, 16, 2);
+      ctx.fillRect(2, -24, 22, 2.5);
+      ctx.beginPath();
+      ctx.moveTo(24, -24);
+      ctx.lineTo(32, -22);
+      ctx.lineTo(24, -20);
+      ctx.fill();
       return;
     }
 
-    legs(type === "shield" ? 3 : 2);
-    torso();
-    head(type !== "sling" && type !== "scout");
-
-    ctx.fillStyle = metal;
     if (type === "spear") {
-      ctx.fillRect(4, -36, 2, 28);
+      ctx.fillStyle = deep;
+      ctx.fillRect(-7, -10, 5, 12);
+      ctx.fillRect(2, -10, 5, 12);
+      ctx.fillStyle = color;
       ctx.beginPath();
-      ctx.moveTo(5, -40);
-      ctx.lineTo(9, -32);
-      ctx.lineTo(1, -32);
+      ctx.moveTo(-8, -10);
+      ctx.lineTo(8, -10);
+      ctx.lineTo(6, -28);
+      ctx.lineTo(-6, -28);
+      ctx.closePath();
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(0, -33, 5.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = metal;
+      ctx.fillRect(-7, -38, 14, 5);
+      ctx.fillRect(5, -42, 2.4, 34);
+      ctx.beginPath();
+      ctx.moveTo(6.2, -46);
+      ctx.lineTo(11, -36);
+      ctx.lineTo(1.5, -36);
       ctx.fill();
       ctx.fillStyle = color;
       ctx.beginPath();
-      ctx.ellipse(-8, -16, 5, 8, 0, 0, Math.PI * 2);
+      ctx.ellipse(-11, -18, 7, 10, -0.15, 0, Math.PI * 2);
       ctx.fill();
-    } else if (type === "sling") {
       ctx.strokeStyle = metal;
-      ctx.lineWidth = 1.6;
-      ctx.beginPath();
-      ctx.moveTo(6, -22);
-      ctx.quadraticCurveTo(16, -34, 12, -14);
+      ctx.lineWidth = 1.4;
       ctx.stroke();
+      return;
+    }
+
+    if (type === "sling") {
+      ctx.fillStyle = deep;
+      ctx.fillRect(-6, -8, 4, 10);
+      ctx.fillRect(3, -9, 4, 11);
       ctx.fillStyle = color;
       ctx.beginPath();
-      ctx.arc(13, -14, 2.4, 0, Math.PI * 2);
+      ctx.moveTo(-5, -8);
+      ctx.lineTo(6, -9);
+      ctx.lineTo(5, -26);
+      ctx.lineTo(-4, -25);
+      ctx.closePath();
       ctx.fill();
-    } else if (type === "scout") {
+      ctx.beginPath();
+      ctx.arc(0, -30, 4.8, 0, Math.PI * 2);
+      ctx.fill();
       ctx.fillStyle = deep;
       ctx.beginPath();
-      ctx.moveTo(-4, -24);
-      ctx.lineTo(14, -10);
-      ctx.lineTo(-4, -8);
-      ctx.fill();
-      ctx.fillStyle = metal;
-      ctx.fillRect(6, -16, 12, 2);
-    } else if (type === "shield") {
-      ctx.fillStyle = color;
-      ctx.beginPath();
-      ctx.ellipse(-8, -16, 8, 12, 0, 0, Math.PI * 2);
+      ctx.moveTo(-2, -34);
+      ctx.quadraticCurveTo(8, -40, 10, -28);
+      ctx.lineTo(2, -28);
       ctx.fill();
       ctx.strokeStyle = metal;
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-    } else if (type === "archer") {
-      ctx.strokeStyle = metal;
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 1.8;
       ctx.beginPath();
-      ctx.arc(10, -20, 11, -1, 1);
+      ctx.moveTo(5, -22);
+      ctx.quadraticCurveTo(20, -40, 16, -12);
       ctx.stroke();
-      ctx.fillRect(4, -21, 14, 1.6);
-    } else if (type === "banner") {
-      ctx.fillRect(6, -50, 3, 36);
-      ctx.fillStyle = color;
-      ctx.fillRect(9, -50, 16, 12);
       ctx.fillStyle = metal;
-      ctx.fillRect(11, -47, 10, 3);
-    } else {
-      ctx.fillRect(4, -28, 16, 2);
+      ctx.beginPath();
+      ctx.arc(16, -12, 3, 0, Math.PI * 2);
+      ctx.fill();
+      return;
     }
+
+    if (type === "scout") {
+      ctx.fillStyle = deep;
+      ctx.fillRect(-8, -6, 4, 8);
+      ctx.fillRect(6, -12, 4, 14);
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.moveTo(-4, -8);
+      ctx.lineTo(10, -14);
+      ctx.lineTo(8, -30);
+      ctx.lineTo(-6, -24);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = deep;
+      ctx.beginPath();
+      ctx.moveTo(-8, -26);
+      ctx.lineTo(12, -34);
+      ctx.lineTo(10, -22);
+      ctx.lineTo(-6, -20);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(2, -32, 4.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = metal;
+      ctx.beginPath();
+      ctx.moveTo(8, -18);
+      ctx.lineTo(24, -12);
+      ctx.lineTo(8, -14);
+      ctx.closePath();
+      ctx.fill();
+      return;
+    }
+
+    if (type === "shield") {
+      ctx.fillStyle = deep;
+      ctx.fillRect(-8, -8, 6, 10);
+      ctx.fillRect(2, -8, 6, 10);
+      ctx.fillStyle = color;
+      ctx.fillRect(-9, -12, 18, 16);
+      ctx.beginPath();
+      ctx.arc(0, -30, 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = metal;
+      ctx.fillRect(-8, -36, 16, 6);
+      ctx.fillStyle = deep;
+      ctx.beginPath();
+      ctx.moveTo(-16, -8);
+      ctx.lineTo(-4, -8);
+      ctx.lineTo(-4, -32);
+      ctx.quadraticCurveTo(-10, -36, -16, -32);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = metal;
+      ctx.lineWidth = 1.6;
+      ctx.stroke();
+      ctx.fillStyle = metal;
+      ctx.fillRect(-12, -24, 6, 2);
+      return;
+    }
+
+    if (type === "archer") {
+      ctx.fillStyle = deep;
+      ctx.fillRect(-6, -8, 4, 10);
+      ctx.fillRect(2, -8, 4, 10);
+      ctx.fillStyle = color;
+      ctx.fillRect(-5, -10, 10, 16);
+      ctx.beginPath();
+      ctx.arc(0, -30, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = metal;
+      ctx.fillRect(-6, -35, 12, 4);
+      ctx.strokeStyle = metal;
+      ctx.lineWidth = 2.2;
+      ctx.beginPath();
+      ctx.arc(12, -22, 14, -1.15, 1.15);
+      ctx.stroke();
+      ctx.fillStyle = metal;
+      ctx.fillRect(2, -23, 18, 2);
+      ctx.fillStyle = deep;
+      ctx.fillRect(-10, -26, 4, 14);
+      ctx.fillStyle = metal;
+      ctx.fillRect(-9, -24, 2, 10);
+      return;
+    }
+
+    if (type === "banner") {
+      ctx.fillStyle = deep;
+      ctx.fillRect(-7, -8, 5, 10);
+      ctx.fillRect(2, -8, 5, 10);
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.moveTo(-10, -8);
+      ctx.lineTo(10, -8);
+      ctx.lineTo(8, -30);
+      ctx.lineTo(-8, -30);
+      ctx.closePath();
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(0, -35, 5.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = metal;
+      ctx.fillRect(-7, -40, 14, 5);
+      ctx.fillRect(6, -56, 3, 40);
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.moveTo(9, -56);
+      ctx.lineTo(28, -50);
+      ctx.lineTo(28, -38);
+      ctx.lineTo(9, -42);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = metal;
+      ctx.fillRect(12, -50, 12, 3);
+      ctx.fillStyle = deep;
+      ctx.beginPath();
+      ctx.moveTo(-12, -20);
+      ctx.quadraticCurveTo(-18, -8, -6, -6);
+      ctx.lineTo(-4, -18);
+      ctx.fill();
+      return;
+    }
+
+    ctx.fillStyle = deep;
+    ctx.fillRect(-5, -8, 4, 10);
+    ctx.fillRect(2, -8, 4, 10);
+    ctx.fillStyle = color;
+    ctx.fillRect(-6, -24, 12, 16);
+    ctx.beginPath();
+    ctx.arc(0, -30, 5.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = metal;
+    ctx.fillRect(4, -28, 16, 2);
   }
 
   function paintUnit(ctx, unit, def, tokens, elapsed) {
@@ -372,14 +516,14 @@
     var bob = unit.walking ? Math.sin(elapsed * 10 + unit.x * 0.05) * 1.5 : 0;
     ctx.save();
     ctx.translate(unit.x, unit.y + bob);
-    ctx.scale(unit.side * 2.15, 2.15);
+    ctx.scale(unit.side * 2.45, 2.45);
     paintGlyphBody(ctx, unit.type, color, deep, metal);
     ctx.restore();
     var ratio = unit.hp / unit.hpMax;
     ctx.fillStyle = tok(tokens, "--color-paper-3", "#2a2620");
-    ctx.fillRect(unit.x - 16, unit.y - 66, 32, 3);
+    ctx.fillRect(unit.x - 18, unit.y - 74, 36, 3);
     ctx.fillStyle = ratio < 0.35 ? tok(tokens, "--color-hp-low", "#c44") : tok(tokens, "--color-hp", "#6c9a4a");
-    ctx.fillRect(unit.x - 16, unit.y - 66, 32 * ratio, 3);
+    ctx.fillRect(unit.x - 18, unit.y - 74, 36 * ratio, 3);
   }
 
   function paintShot(ctx, s, tokens) {
@@ -431,7 +575,7 @@
     var ages = { spear: 0, sling: 0, scout: 0, shield: 1, archer: 1, rider: 1, ram: 2, ballista: 2, banner: 2 };
     c.setTransform(1, 0, 0, 1, 0, 0);
     c.translate(w * 0.5, h * 0.82);
-    c.scale(1.45, 1.45);
+    c.scale(1.7, 1.7);
     paintGlyphBody(c, type, color, deep, metalForAge(ages[type] || 0, tokens));
   }
 

@@ -906,7 +906,7 @@
     var buttons = [];
     if (kind === "pause") {
       buttons.push('<button type="button" class="btn-primary" data-act="resume">繼續</button>');
-      buttons.push('<button type="button" class="btn-ghost" data-act="mute">' + (audio.mute ? "聲音關" : "聲音開") + "</button>");
+      buttons.push('<button type="button" class="btn-ghost" data-act="mute">' + (audio.mute ? "開啟聲音" : "關閉聲音") + "</button>");
       buttons.push('<button type="button" class="btn-ghost" data-act="leave">撤出</button>');
     } else if (kind === "win") {
       if (state.index < 7) {
@@ -930,6 +930,8 @@
     readTokens();
     ensureAudio();
     state = createBattle(index);
+    audio.mute = loadProgress().mute;
+    if (window.BronzeAudio) window.BronzeAudio.setMute(audio.mute);
     hitStop = 0;
     simAcc = 0;
     hudCache.title = "";
@@ -1046,7 +1048,7 @@
         audio.mute = !audio.mute;
         if (window.BronzeAudio) window.BronzeAudio.setMute(audio.mute);
         saveProgress({ mute: audio.mute });
-        btn.textContent = audio.mute ? "聲音關" : "聲音開";
+        btn.textContent = audio.mute ? "開啟聲音" : "關閉聲音";
         if (!audio.mute) {
           ensureAudio();
           window.BronzeAudio.startBed(state && !state.over ? "battle" : "title");
