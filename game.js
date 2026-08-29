@@ -54,6 +54,16 @@
   var flashTimers = {};
   var hitStop = 0;
   var shotSfxGate = 0;
+  var simAcc = 0;
+  var FIXED_DT = 1 / 60;
+  var hudCache = {
+    title: "",
+    age: "",
+    gold: -1,
+    income: "",
+    hint: null,
+    btnKey: ""
+  };
 
   function sfx(name) {
     var fn = window.BronzeAudio && window.BronzeAudio.sfx[name];
@@ -73,7 +83,7 @@
       if (!raw) return { unlocked: 1, mute: false };
       var data = JSON.parse(raw);
       return {
-        unlocked: Math.max(1, Math.min(8, Number(data.unlocked) || 1)),
+        unlocked: Math.max(1, Math.min(9, Number(data.unlocked) || 1)),
         mute: !!data.mute
       };
     } catch (err) {
@@ -254,7 +264,7 @@
     state.volleyCd = 38;
     var dmg = 28 + state.age * 10;
     state.units.forEach(function (u) {
-      if (u.side === -1 && u.x > W * 0.32 && u.x < W * 0.68) {
+      if (!u.dead && u.side === -1 && u.x > W * 0.32 && u.x < W * 0.68) {
         hurtUnit(u, dmg, 1, true);
       }
     });
@@ -316,7 +326,7 @@
           size: 2 + Math.random() * 3
         });
       }
-      state.units = state.units.filter(function (u) { return u !== unit; });
+      unit.dead = true;
       if (!silent) sfx("death", unit.side === 1);
       hitStop = Math.max(hitStop, 0.07);
     }
@@ -363,7 +373,7 @@
     var bestD = 1e9;
     for (var i = 0; i < state.units.length; i += 1) {
       var other = state.units[i];
-      if (other.side === unit.side) continue;
+      if (other.dead || other.side === unit.side) continue;
       var d = (other.x - unit.x) * unit.side;
       if (d > -8 && d < bestD) {
         bestD = d;
@@ -378,7 +388,7 @@
     var bestD = 14;
     for (var i = 0; i < state.units.length; i += 1) {
       var other = state.units[i];
-      if (other === unit || other.side !== unit.side) continue;
+      if (other.dead || other === unit || other.side !== unit.side) continue;
       var d = (other.x - unit.x) * unit.side;
       if (d > 2 && d < bestD && Math.abs(other.y - unit.y) < 10) {
         bestD = d;
@@ -409,10 +419,9 @@
   }
 
   function stepUnits(dt) {
-    var list = state.units.slice();
-    for (var i = 0; i < list.length; i += 1) {
-      var unit = list[i];
-      if (state.units.indexOf(unit) < 0) continue;
+    for (var i = 0; i < state.units.length; i += 1) {
+      var unit = state.units[i];
+      if (unit.dead) continue;
       var def = UNIT_DEFS[unit.type];
       var foe = nearestEnemy(unit);
       var baseX = unit.side === 1 ? ENEMY_BASE_X : PLAYER_BASE_X;
@@ -476,7 +485,7 @@
       }
       for (var j = 0; j < state.units.length; j += 1) {
         var u = state.units[j];
-        if (u.side === s.side) continue;
+        if (u.dead || u.side === s.side) continue;
         var d = Math.abs(u.x - s.x) + Math.abs(u.y - 16 - s.y) * 0.4;
         if (d < hitD) {
           hitD = d;
@@ -504,7 +513,7 @@
     var bestD = stat.range;
     for (var i = 0; i < state.units.length; i += 1) {
       var u = state.units[i];
-      if (u.side === side) continue;
+      if (u.dead || u.side === side) continue;
       var d = Math.abs(u.x - originX);
       if (d < bestD) {
         bestD = d;
@@ -591,6 +600,17 @@
     stepTurret(dt, 1);
     stepTurret(dt, -1);
     stepFx(dt);
+    compactUnits();
+  }
+
+  function compactUnits() {
+    var units = state.units;
+    for (var i = 0; i < units.length; i += 1) {
+      if (units[i].dead) {
+        state.units = units.filter(function (u) { return !u.dead; });
+        return;
+      }
+    }
   }
 
   function drawKeep(x, facing, hp, hpMax, turret, side) {
@@ -643,7 +663,9 @@
       ctx.globalAlpha = 1;
     }
 
-    state.units.forEach(drawUnit);
+    state.units.forEach(function (unit) {
+      if (!unit.dead) drawUnit(unit);
+    });
 
     state.shots.forEach(function (s) {
       window.BronzeArt.paintShot(ctx, s, tokens);
@@ -667,14 +689,43 @@
 
   }
 
-  function paintHud() {
+  function paintHud(force) {
     if (!state) return;
-    document.getElementById("play-title").textContent = state.spec.name;
-    document.getElementById("hud-age").textContent = AGE_NAMES[state.age];
-    document.getElementById("hud-gold").textContent = String(Math.floor(state.gold));
-    document.getElementById("hud-income").textContent = "+" + state.income.toFixed(1) + "／秒";
-    document.getElementById("console-hint").textContent = state.hint;
-    refreshButtons();
+    var goldFloor = Math.floor(state.gold);
+    var ageName = AGE_NAMES[state.age];
+    var incomeStr = "+" + state.income.toFixed(1) + "／秒";
+    if (force || hudCache.title !== state.spec.name) {
+      document.getElementById("play-title").textContent = state.spec.name;
+      hudCache.title = state.spec.name;
+    }
+    if (force || hudCache.age !== ageName) {
+      document.getElementById("hud-age").textContent = ageName;
+      hudCache.age = ageName;
+    }
+    if (force || hudCache.gold !== goldFloor) {
+      document.getElementById("hud-gold").textContent = String(goldFloor);
+      hudCache.gold = goldFloor;
+    }
+    if (force || hudCache.income !== incomeStr) {
+      document.getElementById("hud-income").textContent = incomeStr;
+      hudCache.income = incomeStr;
+    }
+    if (force || hudCache.hint !== state.hint) {
+      document.getElementById("console-hint").textContent = state.hint;
+      hudCache.hint = state.hint;
+    }
+    var btnKey = [
+      state.age,
+      goldFloor,
+      state.turret,
+      Math.ceil(state.hornCd),
+      Math.ceil(state.volleyCd),
+      state.over ? 1 : 0
+    ].join("|");
+    if (force || hudCache.btnKey !== btnKey) {
+      refreshButtons();
+      hudCache.btnKey = btnKey;
+    }
   }
 
   function setDisabled(el, on) {
@@ -751,6 +802,7 @@
       cmds.push('<button type="button" class="cmd-btn" id="cmd-volley" data-cmd="volley"><span class="u-key">V</span><canvas class="u-glyph" width="72" height="52" aria-hidden="true"></canvas><span class="u-name">火箭</span><span class="u-meta"></span></button>');
     }
     document.getElementById("cmd-row").innerHTML = cmds.join("");
+    hudCache.btnKey = "";
     paintDockGlyphs();
   }
 
@@ -879,8 +931,15 @@
     ensureAudio();
     state = createBattle(index);
     hitStop = 0;
+    simAcc = 0;
+    hudCache.title = "";
+    hudCache.age = "";
+    hudCache.gold = -1;
+    hudCache.income = "";
+    hudCache.hint = null;
+    hudCache.btnKey = "";
     renderUnitBar();
-    paintHud();
+    paintHud(true);
     showScreen("play");
     if (window.BronzeAudio) window.BronzeAudio.startBed("battle");
     hideOverlay();
@@ -897,11 +956,16 @@
   function loop(ts) {
     if (!state) return;
     if (!lastTs) lastTs = ts;
-    var dt = (ts - lastTs) / 1000;
+    var frameDt = Math.min((ts - lastTs) / 1000, 0.1);
     lastTs = ts;
-    tick(dt);
+    simAcc += frameDt;
+    if (simAcc > 0.25) simAcc = 0.25;
+    while (simAcc >= FIXED_DT) {
+      tick(FIXED_DT);
+      simAcc -= FIXED_DT;
+    }
     drawField();
-    paintHud();
+    paintHud(false);
     raf = requestAnimationFrame(loop);
   }
 
@@ -1053,7 +1117,17 @@
     startBattle: startBattle,
     getState: function () { return state; },
     recruit: tryRecruit,
-    tick: tick
+    tick: tick,
+    getPerf: function () {
+      return {
+        units: state ? state.units.length : 0,
+        shots: state ? state.shots.length : 0,
+        parts: state ? state.parts.length : 0,
+        fixedDt: FIXED_DT,
+        simAcc: simAcc,
+        hitStop: hitStop
+      };
+    }
   };
 
   init();
