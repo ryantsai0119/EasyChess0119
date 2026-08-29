@@ -32,14 +32,14 @@ LANE_Y = [508, 538, 568]
 MAX_UNITS = 36
 
 BATTLES = [
-    { name: "河岸斥候", blurb: "敵軍只會出銅器。先學會存錢再推。", playerGold: 95, playerIncome: 9, playerHp: 440, enemyGold: 28, enemyIncome: 4.4, enemyHp: 340, enemyMaxAge: 0, enemyStartAge: 0, enemyAgeAt: 999, aiGap: 1.15, aiSave: 0.22 },
-    { name: "渡口爭奪", blurb: "對面上投石了。用斥候繞、用矛兵頂。", playerGold: 90, playerIncome: 9.2, playerHp: 460, enemyGold: 40, enemyIncome: 5.4, enemyHp: 380, enemyMaxAge: 0, enemyStartAge: 0, enemyAgeAt: 999, aiGap: 1.02, aiSave: 0.18 },
-    { name: "丘陵營地", blurb: "敵營較厚。這場開始要考慮升鐵器。", playerGold: 100, playerIncome: 9.6, playerHp: 480, enemyGold: 55, enemyIncome: 6.2, enemyHp: 460, enemyMaxAge: 0, enemyStartAge: 0, enemyAgeAt: 999, aiGap: 0.95, aiSave: 0.16 },
-    { name: "鐵器初現", blurb: "對方會升到鐵器。你的年代不能落後太久。", playerGold: 110, playerIncome: 10, playerHp: 500, enemyGold: 85, enemyIncome: 6.9, enemyHp: 500, enemyMaxAge: 1, enemyStartAge: 0, enemyAgeAt: 22, aiGap: 0.90, aiSave: 0.15 },
-    { name: "關隘夜襲", blurb: "對方稍後升鐵器。先用銅器頂住，再追年代。", playerGold: 120, playerIncome: 10.6, playerHp: 520, enemyGold: 110, enemyIncome: 7.5, enemyHp: 530, enemyMaxAge: 1, enemyStartAge: 0, enemyAgeAt: 20, aiGap: 0.84, aiSave: 0.13 },
-    { name: "鑄鋼對峙", blurb: "敵方會摸到鑄鋼。攻城槌是拆營的刀。", playerGold: 135, playerIncome: 11.4, playerHp: 580, enemyGold: 130, enemyIncome: 8.0, enemyHp: 580, enemyMaxAge: 2, enemyStartAge: 1, enemyAgeAt: 36, aiGap: 0.80, aiSave: 0.12 },
-    { name: "攻城前夜", blurb: "厚營、連弩、旗手。亂出會被射穿。", playerGold: 155, playerIncome: 12.6, playerHp: 640, enemyGold: 160, enemyIncome: 10.2, enemyHp: 680, enemyMaxAge: 2, enemyStartAge: 1, enemyAgeAt: 28, aiGap: 0.74, aiSave: 0.10 },
-    { name: "王庭決戰", blurb: "最後一場。對方會追到鑄鋼，但你也有喘息空間。", playerGold: 180, playerIncome: 13.4, playerHp: 740, enemyGold: 200, enemyIncome: 11.4, enemyHp: 780, enemyMaxAge: 2, enemyStartAge: 1, enemyAgeAt: 20, aiGap: 0.64, aiSave: 0.09 }
+    { "name": "河岸斥候", "blurb": "敵軍只會出銅器。先學會存錢再推。", "playerGold": 95, "playerIncome": 9, "playerHp": 440, "enemyGold": 28, "enemyIncome": 4.4, "enemyHp": 340, "enemyMaxAge": 0, "enemyStartAge": 0, "enemyAgeAt": 999, "aiGap": 1.15, "aiSave": 0.22 },
+    { "name": "渡口爭奪", "blurb": "對面上投石了。用斥候繞、用矛兵頂。", "playerGold": 90, "playerIncome": 9.2, "playerHp": 460, "enemyGold": 40, "enemyIncome": 5.4, "enemyHp": 380, "enemyMaxAge": 0, "enemyStartAge": 0, "enemyAgeAt": 999, "aiGap": 1.02, "aiSave": 0.18 },
+    { "name": "丘陵營地", "blurb": "敵營較厚。這場開始要考慮升鐵器。", "playerGold": 100, "playerIncome": 9.6, "playerHp": 480, "enemyGold": 55, "enemyIncome": 6.2, "enemyHp": 460, "enemyMaxAge": 0, "enemyStartAge": 0, "enemyAgeAt": 999, "aiGap": 0.95, "aiSave": 0.16 },
+    { "name": "鐵器初現", "blurb": "對方會升到鐵器。你的年代不能落後太久。", "playerGold": 110, "playerIncome": 10, "playerHp": 500, "enemyGold": 85, "enemyIncome": 6.9, "enemyHp": 500, "enemyMaxAge": 1, "enemyStartAge": 0, "enemyAgeAt": 22, "aiGap": 0.90, "aiSave": 0.15 },
+    { "name": "關隘夜襲", "blurb": "對方稍後升鐵器。先用銅器頂住，再追年代。", "playerGold": 120, "playerIncome": 10.6, "playerHp": 520, "enemyGold": 110, "enemyIncome": 7.5, "enemyHp": 530, "enemyMaxAge": 1, "enemyStartAge": 0, "enemyAgeAt": 20, "aiGap": 0.84, "aiSave": 0.13 },
+    { "name": "鑄鋼對峙", "blurb": "敵方會摸到鑄鋼。攻城槌是拆營的刀。", "playerGold": 135, "playerIncome": 11.4, "playerHp": 580, "enemyGold": 130, "enemyIncome": 8.0, "enemyHp": 580, "enemyMaxAge": 2, "enemyStartAge": 1, "enemyAgeAt": 36, "aiGap": 0.80, "aiSave": 0.12 },
+    { "name": "攻城前夜", "blurb": "厚營、連弩、旗手。亂出會被射穿。", "playerGold": 155, "playerIncome": 12.6, "playerHp": 640, "enemyGold": 160, "enemyIncome": 10.2, "enemyHp": 680, "enemyMaxAge": 2, "enemyStartAge": 1, "enemyAgeAt": 28, "aiGap": 0.74, "aiSave": 0.10 },
+    { "name": "王庭決戰", "blurb": "最後一場。對方會追到鑄鋼，但你也有喘息空間。", "playerGold": 180, "playerIncome": 13.4, "playerHp": 740, "enemyGold": 200, "enemyIncome": 11.4, "enemyHp": 780, "enemyMaxAge": 2, "enemyStartAge": 1, "enemyAgeAt": 20, "aiGap": 0.64, "aiSave": 0.09 }
   ]
 
 
