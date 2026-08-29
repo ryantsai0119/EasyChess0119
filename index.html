@@ -2,29 +2,45 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+  <meta name="theme-color" content="#141018">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="青銅前線">
   <title>青銅前線</title>
   <meta name="description" content="單線戰爭：用金幣招兵，沿一條战线推向敵營。">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+TC:wght@400;500;600;700&family=Noto+Serif+TC:wght@600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="tokens.css?v=20260829d">
-  <link rel="stylesheet" href="styles.css?v=20260829d">
+  <link rel="stylesheet" href="tokens.css?v=20260829e">
+  <link rel="stylesheet" href="styles.css?v=20260829e">
 </head>
-<body>
+<body class="is-booting">
   <main id="app">
+    <div id="boot-splash" class="boot-splash" role="dialog" aria-modal="true" aria-labelledby="boot-title">
+      <div class="boot-glow" aria-hidden="true"></div>
+      <div class="boot-mark" aria-hidden="true">
+        <span class="boot-keep"></span>
+        <span class="boot-blade"></span>
+      </div>
+      <p class="boot-studio">BRONZE FRONT</p>
+      <h1 class="boot-title" id="boot-title">青銅前線</h1>
+      <p class="boot-hint" id="boot-hint">點擊開始</p>
+    </div>
+
     <section id="screen-menu" class="screen screen-title is-on" aria-labelledby="menu-title">
       <div class="title-sky" aria-hidden="true">
         <canvas id="title-field" width="1280" height="720"></canvas>
       </div>
-      <div class="title-card">
+      <div class="title-veil" aria-hidden="true"></div>
+      <div class="title-menu">
         <p class="kicker">單線戰爭</p>
         <h1 id="menu-title">青銅前線</h1>
-        <p class="lede">金幣招兵，沿一條路推向敵營。</p>
         <p class="title-progress" id="progress-stat">第 1 戰</p>
-        <div class="title-actions">
-          <button type="button" class="btn-primary" id="btn-continue">開戰</button>
-          <button type="button" class="btn-ghost" data-screen="battles">戰役</button>
+        <button type="button" class="btn-play" id="btn-continue">開始遊戲</button>
+        <div class="title-secondary">
+          <button type="button" class="btn-ghost" data-screen="battles">戰役選擇</button>
           <button type="button" class="btn-ghost" id="btn-how">怎麼打</button>
         </div>
       </div>
@@ -93,8 +109,8 @@
     </div>
   </div>
 
-  <script src="art.js?v=20260829d"></script>
-  <script src="audio.js?v=20260829d"></script>
-  <script src="game.js?v=20260829d"></script>
+  <script src="art.js?v=20260829e"></script>
+  <script src="audio.js?v=20260829e"></script>
+  <script src="game.js?v=20260829e"></script>
 </body>
 </html>

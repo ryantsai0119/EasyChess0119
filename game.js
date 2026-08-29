@@ -852,7 +852,7 @@
       go.textContent = "再征 · " + BATTLES[0].name;
     } else if (unlocked === 1) {
       el.textContent = "第 1 戰 · " + BATTLES[0].name;
-      go.textContent = "開戰";
+      go.textContent = "開始遊戲";
     } else {
       el.textContent = "下一場 · " + BATTLES[idx].name;
       go.textContent = "繼續 · " + BATTLES[idx].name;
@@ -1087,6 +1087,26 @@
     });
   }
 
+  var splashDone = false;
+
+  function dismissSplash(fromUser) {
+    if (splashDone) return;
+    splashDone = true;
+    var splash = document.getElementById("boot-splash");
+    document.body.classList.remove("is-booting");
+    if (splash) {
+      splash.classList.add("is-out");
+      setTimeout(function () {
+        if (splash.parentNode) splash.parentNode.removeChild(splash);
+      }, 560);
+    }
+    showScreen("menu");
+    if (fromUser) {
+      ensureAudio();
+      if (!audio.mute && window.BronzeAudio) window.BronzeAudio.startBed("title");
+    }
+  }
+
   function init() {
     readTokens();
     audio.mute = loadProgress().mute;
@@ -1095,6 +1115,7 @@
     renderCampaign();
     bind();
     function applyHash() {
+      if (!splashDone) return;
       var hash = (location.hash || "").replace("#", "");
       if (hash === "battles") showScreen("battles");
       else if (hash === "how") {
@@ -1105,14 +1126,35 @@
       }
     }
     window.addEventListener("hashchange", applyHash);
-    applyHash();
-    document.addEventListener("pointerdown", function once() {
-      ensureAudio();
-      if (!audio.mute && window.BronzeAudio) {
-        window.BronzeAudio.startBed(document.body.classList.contains("is-play") ? "battle" : "title");
+
+    var splash = document.getElementById("boot-splash");
+    if (splash) {
+      document.body.classList.add("is-title");
+      startTitleLoop();
+      var auto = setTimeout(function () { dismissSplash(false); }, 2600);
+      function tapSplash() {
+        clearTimeout(auto);
+        dismissSplash(true);
       }
-      document.removeEventListener("pointerdown", once);
-    }, { once: true });
+      splash.addEventListener("pointerdown", tapSplash);
+      splash.addEventListener("keydown", function (ev) {
+        if (ev.key === "Enter" || ev.key === " ") {
+          ev.preventDefault();
+          tapSplash();
+        }
+      });
+      splash.tabIndex = 0;
+    } else {
+      splashDone = true;
+      applyHash();
+      document.addEventListener("pointerdown", function once() {
+        ensureAudio();
+        if (!audio.mute && window.BronzeAudio) {
+          window.BronzeAudio.startBed(document.body.classList.contains("is-play") ? "battle" : "title");
+        }
+        document.removeEventListener("pointerdown", once);
+      }, { once: true });
+    }
   }
 
   window.BronzeFront = {

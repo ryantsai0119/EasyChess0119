@@ -25,13 +25,21 @@ body {
   font-family: var(--font-body);
   font-size: var(--text-md);
   line-height: 1.5;
-  background: var(--color-paper);
+  background: #0e0c10;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
 }
 
+body.is-booting,
 body.is-play,
 body.is-title,
 body.is-select {
   overflow: hidden;
+}
+
+body.is-booting #app > .screen {
+  visibility: hidden;
 }
 
 h1,
@@ -77,7 +85,7 @@ button:focus-visible {
 .screen[hidden] { display: none !important; }
 .screen-title.is-on {
   display: grid;
-  place-items: end start;
+  place-items: center;
 }
 .screen-select.is-on { display: block; }
 .screen-play.is-on {
@@ -85,12 +93,125 @@ button:focus-visible {
   grid-template-rows: minmax(0, 1fr) auto;
 }
 
-/* —— Title: one card on a battlefield, not a landing page —— */
+/* —— App boot splash —— */
+.boot-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-xl);
+  background:
+    radial-gradient(ellipse 80% 55% at 50% 38%, oklch(28% 0.08 55 / 0.55), transparent 70%),
+    linear-gradient(180deg, #120e14 0%, #0a090c 100%);
+  cursor: pointer;
+  transition: opacity 520ms var(--ease-out), visibility 520ms;
+}
+
+.boot-splash.is-out {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.boot-glow {
+  position: absolute;
+  inset: 20% 10% auto;
+  height: 40%;
+  background: radial-gradient(circle, oklch(50% 0.12 60 / 0.22), transparent 70%);
+  pointer-events: none;
+}
+
+.boot-mark {
+  position: relative;
+  width: 4.5rem;
+  height: 4.5rem;
+  margin-bottom: var(--space-md);
+  animation: boot-rise 900ms var(--ease-out) both;
+}
+
+.boot-keep {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 1.55rem;
+  height: 3.2rem;
+  margin-left: -0.78rem;
+  background: linear-gradient(180deg, var(--color-bronze), var(--color-copper));
+  border-radius: 2px 2px 0 0;
+  box-shadow: 0 0 24px oklch(55% 0.12 60 / 0.35);
+}
+
+.boot-keep::before {
+  content: "";
+  position: absolute;
+  top: -0.55rem;
+  left: -0.2rem;
+  right: -0.2rem;
+  height: 0.55rem;
+  background: var(--color-accent);
+}
+
+.boot-blade {
+  position: absolute;
+  left: 58%;
+  bottom: 1.1rem;
+  width: 2.4rem;
+  height: 0.28rem;
+  background: var(--color-steel);
+  transform: rotate(-28deg);
+  transform-origin: left center;
+  box-shadow: 0 0 12px oklch(80% 0.05 80 / 0.4);
+}
+
+.boot-studio {
+  margin: 0;
+  font-family: var(--font-outlier);
+  font-size: var(--text-xs);
+  letter-spacing: 0.28em;
+  color: var(--color-muted);
+  animation: boot-rise 900ms var(--ease-out) 80ms both;
+}
+
+.boot-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 10vw, 4.75rem);
+  letter-spacing: 0.06em;
+  color: var(--color-ink);
+  text-shadow: 0 0 40px oklch(55% 0.12 60 / 0.35);
+  animation: boot-rise 900ms var(--ease-out) 140ms both;
+}
+
+.boot-hint {
+  margin: var(--space-xl) 0 0;
+  font-size: var(--text-sm);
+  letter-spacing: 0.18em;
+  color: var(--color-accent);
+  animation: boot-pulse 1.8s var(--ease-in-out) 700ms infinite;
+}
+
+@keyframes boot-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes boot-pulse {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 1; }
+}
+
+/* —— Title: centered game menu over battlefield —— */
 .screen-title {
   position: relative;
   height: 100dvh;
   max-height: 100dvh;
-  padding: var(--space-xl) var(--space-lg) 12vh;
+  padding:
+    max(var(--space-xl), env(safe-area-inset-top, 0px))
+    var(--space-lg)
+    max(12vh, env(safe-area-inset-bottom, 0px));
   overflow: clip;
 }
 
@@ -106,53 +227,94 @@ button:focus-visible {
   height: 100%;
 }
 
-.title-card::before {
-  content: "";
-  display: block;
-  width: 3.5rem;
-  height: 3px;
-  margin-bottom: var(--space-sm);
-  background: var(--color-accent);
+.title-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, oklch(8% 0.02 50 / 0.55) 0%, transparent 42%, oklch(8% 0.02 50 / 0.72) 100%);
 }
 
-.title-card {
+.title-menu {
   position: relative;
   z-index: 2;
-  max-width: 32rem;
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  gap: var(--space-xs);
+  width: min(22rem, 100%);
+  padding: var(--space-lg) var(--space-md);
+  animation: boot-rise 700ms var(--ease-out) both;
 }
 
-.screen-title .btn-primary,
-.screen-title .btn-ghost {
-  min-height: 3.15rem;
-  padding: 0.7rem 1.25rem;
-  font-size: var(--text-md);
+.title-menu h1 {
+  margin: 0 0 var(--space-2xs);
+  letter-spacing: 0.04em;
+  text-shadow: 0 2px 24px oklch(0% 0 0 / 0.55);
 }
 
 .kicker {
-  margin: 0 0 var(--space-xs);
+  margin: 0;
   font-family: var(--font-outlier);
   font-size: var(--text-xs);
-  letter-spacing: 0.12em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--color-accent);
+}
+
+.title-progress {
+  margin: 0 0 var(--space-lg);
+  color: var(--color-ink-2);
+  font-size: var(--text-sm);
+  max-width: none;
+}
+
+.btn-play {
+  appearance: none;
+  border: 0;
+  width: 100%;
+  min-height: 3.4rem;
+  padding: 0.85rem 1.5rem;
+  margin-bottom: var(--space-sm);
+  border-radius: 999px;
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  color: var(--color-accent-ink);
+  background: linear-gradient(180deg, var(--color-accent), color-mix(in oklch, var(--color-accent) 70%, var(--color-copper)));
+  box-shadow:
+    0 0 0 1px oklch(80% 0.08 70 / 0.25) inset,
+    0 10px 28px oklch(40% 0.1 55 / 0.35);
+}
+
+.btn-play:active {
+  transform: translateY(1px) scale(0.99);
+}
+
+.title-secondary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-xs);
+  width: 100%;
+}
+
+.screen-title .btn-ghost {
+  min-height: 2.85rem;
+  width: 100%;
+  padding: 0.55rem 0.75rem;
+  font-size: var(--text-sm);
+  border-radius: 999px;
+  background: oklch(12% 0.02 50 / 0.55);
+  backdrop-filter: blur(8px);
 }
 
 .lede {
   color: var(--color-ink-2);
   font-size: var(--text-lg);
   margin-bottom: var(--space-sm);
-}
-
-.title-progress {
-  margin: 0 0 var(--space-lg);
-  color: var(--color-muted);
-  font-size: var(--text-sm);
-}
-
-.title-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-xs);
 }
 
 /* —— Campaign select —— */
