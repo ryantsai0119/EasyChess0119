@@ -1,116 +1,1245 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
-  <meta name="theme-color" content="#141018">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="青銅前線">
-  <title>青銅前線</title>
-  <meta name="description" content="單線戰爭：用金幣招兵，沿一條战线推向敵營。">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+TC:wght@400;500;600;700&family=Noto+Serif+TC:wght@600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="tokens.css?v=20260829g">
-  <link rel="stylesheet" href="styles.css?v=20260829g">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>今天的心動小測驗</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='8' fill='%23ff8fb7'/%3E%3C/svg%3E" />
+  <style>
+    :root {
+      --bg-color: #fff3f8;
+      --card-bg: #fffdfb;
+      --text-main: #5c3b4a;
+      --text-sub: #b07a90;
+      --accent: #ff7aa8;
+      --accent-soft: #ffe4ef;
+      --border-color: #ffd0e2;
+      --shadow: 0 10px 0 #ffd6e7;
+      --font-display: "Zen Maru Gothic", "PingFang TC", "Microsoft JhengHei", sans-serif;
+    }
+
+    /* 階段二：可愛還在，但開始不對勁 */
+    body.stage-2 {
+      --bg-color: #e6dbe2;
+      --card-bg: #f6eef2;
+      --text-main: #4c3942;
+      --text-sub: #8d6e7c;
+      --accent: #c45678;
+      --accent-soft: rgba(196, 86, 120, 0.14);
+      --border-color: #e3c2cf;
+      --shadow: 0 8px 0 #d9c3cc;
+    }
+
+    /* 階段三：完全腐化與極度壓迫 */
+    body.stage-3 {
+      --bg-color: #050505;
+      --card-bg: #0c0808;
+      --text-main: #f87171;
+      --text-sub: #991b1b;
+      --accent: #ef4444;
+      --accent-soft: rgba(239, 68, 68, 0.18);
+      --border-color: #450a0a;
+      --shadow: 0 0 50px rgba(220, 38, 38, 0.25);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      font-family: var(--font-display);
+      background-color: var(--bg-color);
+      background-image:
+        radial-gradient(circle at 14% 16%, #ffd6e8 0 16px, transparent 17px),
+        radial-gradient(circle at 86% 10%, #ffe7a8 0 9px, transparent 10px),
+        radial-gradient(circle at 82% 88%, #ffd0e4 0 20px, transparent 21px),
+        radial-gradient(circle at 10% 84%, #fff 0 7px, transparent 8px);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      overflow-x: hidden;
+      transition: background-color 1.4s ease, color 0.8s ease;
+      position: relative;
+    }
+
+    body.stage-2 {
+      background-image:
+        radial-gradient(circle at 14% 16%, #d9c6cf 0 16px, transparent 17px),
+        radial-gradient(circle at 86% 10%, #cfc3b4 0 9px, transparent 10px);
+    }
+
+    body.stage-3 {
+      background-image: none;
+    }
+
+    /* 掃描線與暗角遮罩 */
+    .vignette {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 10;
+      opacity: 0;
+      background: radial-gradient(circle, transparent 45%, rgba(0, 0, 0, 0.92) 100%);
+      transition: opacity 1.5s ease;
+    }
+
+    .scanlines {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 11;
+      opacity: 0;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 0) 0px,
+        rgba(255, 255, 255, 0) 2px,
+        rgba(0, 0, 0, 0.28) 3px,
+        rgba(0, 0, 0, 0.28) 4px
+      );
+      transition: opacity 1s ease;
+    }
+
+    body.stage-2 .vignette { opacity: 0.28; }
+    body.stage-2 .scanlines { opacity: 0.08; }
+    body.stage-3 .vignette { opacity: 0.95; }
+    body.stage-3 .scanlines { opacity: 0.65; }
+
+    /* 畫面震動動畫 */
+    @keyframes subtleShake {
+      0%, 100% { transform: translate(0, 0) rotate(0deg); }
+      25% { transform: translate(-1.5px, 1px) rotate(-0.2deg); }
+      50% { transform: translate(1.5px, -1px) rotate(0.2deg); }
+      75% { transform: translate(-1px, -1.5px) rotate(-0.1deg); }
+    }
+
+    @keyframes heavyShake {
+      0%, 100% { transform: translate(0, 0) rotate(0deg); }
+      15% { transform: translate(-9px, 6px) rotate(-1.4deg); }
+      35% { transform: translate(10px, -7px) rotate(1.3deg); }
+      55% { transform: translate(-7px, -8px) rotate(-0.8deg); }
+      75% { transform: translate(8px, 7px) rotate(0.9deg); }
+    }
+
+    body.stage-2 .container {
+      animation: subtleShake 1.6s infinite;
+    }
+
+    body.stage-3 .container {
+      animation: heavyShake 0.11s infinite;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 520px;
+      background: var(--card-bg);
+      border: 3px solid var(--border-color);
+      border-radius: 28px;
+      padding: 22px 22px 26px;
+      box-shadow: var(--shadow);
+      position: relative;
+      z-index: 20;
+      transition: background-color 1s ease, border-color 1s ease, box-shadow 1s ease, border-radius 0.8s ease;
+    }
+
+    body.stage-3 .container {
+      border-width: 1px;
+      border-radius: 16px;
+      padding: 28px 24px;
+    }
+
+    .mascot-wrap {
+      position: relative;
+      width: 112px;
+      height: 112px;
+      margin: 0 auto 8px;
+      animation: floaty 3.2s ease-in-out infinite;
+    }
+
+    .mascot {
+      width: 112px;
+      height: 112px;
+      display: block;
+    }
+
+    .sparkle {
+      position: absolute;
+      color: #ff8fb7;
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    .sparkle-a { top: 6px; left: -6px; }
+    .sparkle-b { top: 18px; right: -8px; color: #ffc14d; }
+
+    .pupil, .mouth { transform-box: fill-box; transform-origin: center; }
+    .crack { opacity: 0; transition: opacity 1.2s ease; }
+    body.stage-2 .crack { opacity: 0.9; }
+    body.stage-2 .pupil { transform: translate(1px, 3px) scale(0.72); }
+    body.stage-2 .mouth { stroke: #6b2438; transform: scaleX(1.45) translateY(3px); }
+    body.stage-2 .blush { fill: #c9b3ba; }
+    body.stage-2 .sparkle { opacity: 0.25; }
+    body.stage-2 .mascot-wrap { animation: none; }
+
+    body.stage-3 .mascot-wrap { display: none; }
+
+    @keyframes floaty {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
+
+    .header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      font-size: 13px;
+      color: var(--text-sub);
+    }
+
+    .badge {
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      transition: all 0.5s ease;
+    }
+
+    .mute-btn {
+      background: #fff;
+      border: 2px solid var(--border-color);
+      color: var(--text-sub);
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-family: inherit;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .progress-wrap {
+      width: 100%;
+      height: 5px;
+      background: var(--border-color);
+      border-radius: 99px;
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--accent);
+      transition: width 0.4s ease, background-color 0.8s ease;
+    }
+
+    h1 {
+      font-size: 22px;
+      line-height: 1.4;
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      line-height: 1.65;
+      color: var(--text-sub);
+      margin-bottom: 24px;
+    }
+
+    .whisper {
+      font-size: 12px;
+      color: #ef4444;
+      min-height: 18px;
+      margin-bottom: 14px;
+      letter-spacing: 1px;
+      opacity: 0.85;
+      font-style: italic;
+    }
+
+    .options-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .option-btn {
+      width: 100%;
+      text-align: left;
+      padding: 15px 16px;
+      border-radius: 18px;
+      border: 2px solid var(--border-color);
+      background: #fff;
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 15px;
+      line-height: 1.5;
+      cursor: pointer;
+      transition: transform 0.15s ease, border-color 0.25s ease, background-color 0.25s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .option-btn:hover, .option-btn:active {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      transform: translateX(3px);
+    }
+
+    .option-btn:focus-visible,
+    .primary-btn:focus-visible,
+    .mute-btn:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    body.stage-2 .option-btn.corrupted {
+      color: #9f1239 !important;
+      border-color: #e7b7c6 !important;
+      background: #fff7f8 !important;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+    }
+
+    body.stage-3 .option-btn.corrupted {
+      color: #ff2a2a !important;
+      border-color: #dc2626 !important;
+      background: rgba(127, 29, 29, 0.35) !important;
+      font-weight: 700;
+      letter-spacing: 1px;
+      border-radius: 12px;
+    }
+
+    .primary-btn {
+      width: 100%;
+      padding: 15px;
+      border-radius: 999px;
+      border: none;
+      background: var(--accent);
+      color: #ffffff;
+      font-family: inherit;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 5px 0 #f2558c;
+      transition: opacity 0.2s ease, transform 0.15s ease, box-shadow 0.4s ease;
+    }
+
+    body.stage-3 .primary-btn {
+      border-radius: 12px;
+      box-shadow: none;
+      font-weight: 600;
+    }
+
+    body.stage-3 .mute-btn {
+      background: transparent;
+      border-width: 1px;
+      border-radius: 8px;
+    }
+
+    .primary-btn:active {
+      transform: scale(0.98);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* 結果頁樣式 */
+    .result-box {
+      border: 1px solid #7f1d1d;
+      background: rgba(69, 10, 10, 0.25);
+      border-radius: 12px;
+      padding: 18px;
+      margin: 18px 0;
+    }
+
+    .result-type {
+      font-size: 20px;
+      font-weight: 800;
+      color: #ef4444;
+      margin-bottom: 8px;
+    }
+
+    .result-desc {
+      font-size: 14px;
+      line-height: 1.7;
+      color: #e2e8f0;
+    }
+
+    /* 全螢幕突臉 Canvas */
+    #scareCanvas {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 9999;
+      pointer-events: none;
+      display: none;
+      background: #140000;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      body.stage-2 .container,
+      body.stage-3 .container,
+      .mascot-wrap {
+        animation: none;
+      }
+    }
+  </style>
 </head>
-<body class="is-booting">
-  <main id="app">
-    <div id="boot-splash" class="boot-splash" role="dialog" aria-modal="true" aria-labelledby="boot-title">
-      <div class="boot-glow" aria-hidden="true"></div>
-      <div class="boot-mark" aria-hidden="true">
-        <span class="boot-keep"></span>
-        <span class="boot-blade"></span>
-      </div>
-      <p class="boot-studio">BRONZE FRONT</p>
-      <h1 class="boot-title" id="boot-title">青銅前線</h1>
-      <p class="boot-hint" id="boot-hint">點擊開始</p>
+<body>
+  <div class="vignette"></div>
+  <div class="scanlines"></div>
+  <canvas id="scareCanvas"></canvas>
+
+  <div class="container" id="appCard">
+    <div class="mascot-wrap" aria-hidden="true">
+      <span class="sparkle sparkle-a">✦</span>
+      <span class="sparkle sparkle-b">♡</span>
+      <svg class="mascot" viewBox="0 0 120 120">
+        <circle cx="30" cy="30" r="16" fill="#ff8fb8" />
+        <circle cx="90" cy="30" r="16" fill="#ff8fb8" />
+        <circle cx="30" cy="30" r="8" fill="#ffd6e6" />
+        <circle cx="90" cy="30" r="8" fill="#ffd6e6" />
+        <circle cx="60" cy="64" r="36" fill="#ffb3d0" />
+        <ellipse cx="60" cy="76" rx="16" ry="12" fill="#ffe8f1" />
+        <ellipse cx="60" cy="72" rx="5.5" ry="4" fill="#d46b8c" />
+        <ellipse cx="46" cy="58" rx="6.5" ry="7.5" fill="#fff" />
+        <ellipse cx="74" cy="58" rx="6.5" ry="7.5" fill="#fff" />
+        <ellipse class="pupil" cx="47" cy="60" rx="3.2" ry="3.8" fill="#5c3b4a" />
+        <ellipse class="pupil" cx="75" cy="60" rx="3.2" ry="3.8" fill="#5c3b4a" />
+        <circle cx="48.2" cy="58.4" r="1.2" fill="#fff" />
+        <circle cx="76.2" cy="58.4" r="1.2" fill="#fff" />
+        <ellipse class="blush" cx="34" cy="70" rx="6" ry="3.5" fill="#ff8fb8" />
+        <ellipse class="blush" cx="86" cy="70" rx="6" ry="3.5" fill="#ff8fb8" />
+        <path class="mouth" d="M54 80c3 4 9 4 12 0" fill="none" stroke="#e07498" stroke-width="2.4" stroke-linecap="round" />
+        <path class="crack" d="M58 34l-2 12 5 3-3 10" fill="none" stroke="#6b2438" stroke-width="2" />
+      </svg>
+    </div>
+    <div class="header-bar">
+      <span class="badge" id="stageBadge">心動小測驗</span>
+      <button class="mute-btn" id="muteBtn" type="button">🔊 音效開啟</button>
     </div>
 
-    <section id="screen-menu" class="screen screen-title is-on" aria-labelledby="menu-title">
-      <div class="title-sky" aria-hidden="true">
-        <canvas id="title-field" width="1280" height="720"></canvas>
+    <!-- 起始畫面 -->
+    <div id="startScreen">
+      <h1>今天的心動小測驗</h1>
+      <p class="subtitle">
+        8 題短問，看你談戀愛時比較安心、黏人、想逃，還是又想靠近又害怕。<br><br>
+        <span style="font-size: 12px; opacity: 0.75;">開著聲音會比較有感覺。</span>
+      </p>
+      <button class="primary-btn" id="startBtn" type="button">開始小測驗</button>
+    </div>
+
+    <!-- 測驗畫面 -->
+    <div id="quizScreen" class="hidden">
+      <div class="progress-wrap">
+        <div class="progress-fill" id="progressFill"></div>
       </div>
-      <div class="title-veil" aria-hidden="true"></div>
-      <div class="title-menu">
-        <p class="kicker">單線戰爭</p>
-        <h1 id="menu-title">青銅前線</h1>
-        <p class="title-progress" id="progress-stat">第 1 戰</p>
-        <button type="button" class="btn-play" id="btn-continue">開始遊戲</button>
-        <div class="title-secondary">
-          <button type="button" class="btn-ghost" data-screen="battles">戰役選擇</button>
-          <button type="button" class="btn-ghost" id="btn-how">怎麼打</button>
-        </div>
+      <div class="whisper" id="whisperText"></div>
+      <h1 id="questionText"></h1>
+      <div class="options-list" id="optionsList"></div>
+    </div>
+
+    <!-- 結算畫面 -->
+    <div id="resultScreen" class="hidden">
+      <div class="whisper">尖叫停不下來。他就在你耳邊。</div>
+      <h1 id="resultHeadline">深層情感寄生診斷書</h1>
+      <div class="result-box">
+        <div class="result-type" id="resultType"></div>
+        <div class="result-desc" id="resultDesc"></div>
       </div>
-    </section>
-
-    <section id="screen-battles" class="screen screen-select" hidden aria-labelledby="battles-title">
-      <header class="select-head">
-        <button type="button" class="btn-back" data-screen="menu">返回</button>
-        <div>
-          <h2 id="battles-title">戰役</h2>
-          <p>一條路，兩座營。越後面的敵人越會存錢。</p>
-        </div>
-      </header>
-      <ol class="campaign" id="campaign"></ol>
-    </section>
-
-    <section id="screen-play" class="screen screen-play" hidden aria-labelledby="play-title">
-      <div class="stage">
-        <figure class="field-frame">
-          <canvas id="field" width="1280" height="720" aria-label="戰場"></canvas>
-          <figcaption class="sr-only">左側是你的營壘，右側是敵營。單位沿中間土路推進。</figcaption>
-        </figure>
-
-        <header class="hud" id="hud">
-          <div class="hud-left">
-            <h2 id="play-title" class="hud-title">河岸斥候</h2>
-            <p class="hud-age" id="hud-age">銅器</p>
-          </div>
-          <div class="hud-gold" aria-live="polite">
-            <span class="hud-gold-value" id="hud-gold">0</span>
-            <span class="hud-gold-rate" id="hud-income">+0／秒</span>
-          </div>
-          <button type="button" class="btn-menu" id="btn-menu" aria-haspopup="dialog">選單</button>
-        </header>
-
-        <p class="toast" id="console-hint" role="status"></p>
-      </div>
-
-      <div class="dock" id="console">
-        <div class="dock-units" id="unit-row" role="group" aria-label="招兵"></div>
-        <div class="dock-cmds" id="cmd-row" role="group" aria-label="指令"></div>
-      </div>
-    </section>
-  </main>
-
-  <div id="panel-how" class="overlay" hidden>
-    <div class="overlay-card overlay-card-wide" role="dialog" aria-modal="true" aria-labelledby="how-title">
-      <h2 id="how-title">怎麼打</h2>
-      <ul class="how-list">
-        <li>金幣每秒進帳。打死敵兵再拿一筆。錢不夠的格子會暗掉。</li>
-        <li>點格子出兵，或按鍵盤 <kbd>1</kbd>–<kbd>9</kbd>。單位自己上路，遠程會停下來射。</li>
-        <li>升年代解鎖更硬的兵。砲塔守營前。<kbd>A</kbd> 年代 · <kbd>T</kbd> 砲塔。</li>
-        <li>戰號暫時增傷，鐵器起可放火箭打中段。<kbd>H</kbd> · <kbd>V</kbd>。空白鍵或 <kbd>Esc</kbd> 暫停。</li>
-      </ul>
-      <div class="overlay-actions">
-        <button type="button" class="btn-primary" id="btn-how-close">知道了</button>
-      </div>
+      <button class="primary-btn" id="restartBtn" type="button">重新進行評估（傳給下一個受害者）</button>
     </div>
   </div>
 
-  <div id="overlay" class="overlay" hidden>
-    <div class="overlay-card" role="dialog" aria-modal="true" aria-labelledby="overlay-title">
-      <h2 id="overlay-title">暫停</h2>
-      <p id="overlay-copy"></p>
-      <div class="overlay-actions" id="overlay-actions"></div>
-    </div>
-  </div>
+  <script>
+    // ==========================================
+    // 1. 題庫與恐怖腐化文本設定
+    // ==========================================
+    const QUESTIONS = [
+      {
+        stage: 1,
+        whisper: "",
+        prompt: "1. 對方好久沒回，你會？",
+        options: [
+          { text: "先做自己的事", corrupt: "先做自己的事", type: "secure" },
+          { text: "一直看有沒有已讀", corrupt: "一直看有沒有已讀", type: "anxious" },
+          { text: "正好可以一個人", corrupt: "正好可以一個人", type: "avoidant" },
+          { text: "覺得對方不要我了", corrupt: "覺得對方不要我了", type: "fearful" }
+        ]
+      },
+      {
+        stage: 1,
+        whisper: "",
+        prompt: "2. 在一起之後，你要多少自己的空間？",
+        options: [
+          { text: "會分享，也各過各的", corrupt: "會分享，也各過各的", type: "secure" },
+          { text: "最好隨時知道對方在哪", corrupt: "最好隨時知道對方在哪", type: "anxious" },
+          { text: "太黏我就想逃", corrupt: "太黏我就想逃", type: "avoidant" },
+          { text: "想靠近，又怕被看穿", corrupt: "想靠近，又怕被看穿", type: "fearful" }
+        ]
+      },
+      {
+        stage: 2,
+        whisper: "遠處有人在叫。",
+        prompt: "3. 對方半夜在線，卻不看你的訊息。",
+        options: [
+          { text: "可能只是在滑手機", corrupt: "他在看你", type: "secure" },
+          { text: "想傳訊息試探", corrupt: "他們在笑你剛才的叫聲", type: "anxious" },
+          { text: "無所謂，晚點再說", corrupt: "你怕得想叫出來", type: "avoidant" },
+          { text: "之後也冷落對方", corrupt: "鎖起來就不會跑", type: "fearful" }
+        ]
+      },
+      {
+        stage: 2,
+        whisper: "那聲尖叫比較近了。",
+        prompt: "4. 你覺得最親的人懂你嗎？",
+        options: [
+          { text: "會聊，通常能解開", corrupt: "沒有人聽得見", type: "secure" },
+          { text: "不懂，所以我更用力討好", corrupt: "再叫也留不住", type: "anxious" },
+          { text: "本來就沒人完全懂", corrupt: "房間裡不只有你", type: "avoidant" },
+          { text: "靠近最後都會傷人", corrupt: "今晚就會被丟掉", type: "fearful" }
+        ]
+      },
+      {
+        stage: 2,
+        whisper: "它吸了一口氣。",
+        scareFlash: true,
+        prompt: "5. 如果今晚就分開，你最怕什麼？",
+        options: [
+          { text: "一起走過的日子", corrupt: "你會一個人爛在黑暗裡", type: "secure" },
+          { text: "沒有對方，我不知道自己是誰", corrupt: "沒有他你什麼都不是", type: "anxious" },
+          { text: "又要重新一個人生活", corrupt: "門已經從外面鎖上", type: "avoidant" },
+          { text: "再次被丟掉", corrupt: "鏡子裡的嘴正在叫", type: "fearful" }
+        ]
+      },
+      {
+        stage: 3,
+        whisper: "尖叫。一直尖叫。",
+        screamIn: true,
+        prompt: "6. 關燈後，旁邊的呼吸聲是人嗎？",
+        options: [
+          { text: "這只是題目，我想一下", corrupt: "叫出來也沒用", type: "secure" },
+          { text: "有人在就好，我怕一個人", corrupt: "別趕它走，讓它叫", type: "anxious" },
+          { text: "我寧願自己睡", corrupt: "它已經躺在旁邊", type: "avoidant" },
+          { text: "我不敢睜開眼睛", corrupt: "睜眼，跟它一起叫", type: "fearful" }
+        ]
+      },
+      {
+        stage: 3,
+        whisper: "它的嘴張得比臉還大。",
+        prompt: "7. 交一個秘密，換永遠不被丟掉。你願意嗎？",
+        options: [
+          { text: "不交。親密不用賣掉自己", corrupt: "你不能拒絕", type: "secure" },
+          { text: "全部拿走，只要他留下", corrupt: "把聲音交出來", type: "anxious" },
+          { text: "我寧願被忘掉", corrupt: "連呼吸一起消失", type: "avoidant" },
+          { text: "選哪個都是惡夢", corrupt: "歡迎來到這場尖叫", type: "fearful" }
+        ]
+      },
+      {
+        stage: 3,
+        whisper: "跟我一起叫。",
+        finalJumpScare: true,
+        prompt: "8. 背後有東西在看你的脖子嗎？",
+        options: [
+          { text: "沒有，是我多想", corrupt: "回 頭 叫", type: "secure" },
+          { text: "有一點，快點結束", corrupt: "叫 大 聲 點", type: "anxious" },
+          { text: "別再嚇我", corrupt: "我 在 你 後 面", type: "avoidant" },
+          { text: "我不該點進來", corrupt: "太 遲 了", type: "fearful" }
+        ]
+      }
+    ];
 
-  <script src="art.js?v=20260829g"></script>
-  <script src="audio.js?v=20260829g"></script>
-  <script src="game.js?v=20260829g"></script>
+    const RESULTS = {
+      secure: {
+        title: "【安全型依附｜表面冷靜的共生體】",
+        desc: "你平常挺穩，也知道界線在哪。可是剛剛那聲尖叫貼到耳邊時，你還是希望有人能告訴你，背後是安全的。"
+      },
+      anxious: {
+        title: "【焦慮型依附｜深淵凝視的渴愛者】",
+        desc: "你很怕被丟掉，連尖叫都想有人陪。越想抓住，越容易把不該靠近的東西留在身邊。"
+      },
+      avoidant: {
+        title: "【逃避型依附｜反鎖房門的孤島】",
+        desc: "你習慣拉開距離。出口被封住、燈也滅了之後，真正讓你叫出來的不是親密，是只剩你一個人。"
+      },
+      fearful: {
+        title: "【恐懼逃避型｜裂縫中的窺視者】",
+        desc: "你想被接住，又覺得靠近一定會痛。這道裂縫剛才張開過——那張正在叫的臉，就是從裡面出來的。"
+      }
+    };
+
+    const BADGES = {
+      1: "心動小測驗",
+      2: "好像有點不對",
+      3: "評估無法中止"
+    };
+
+    // ==========================================
+    // 2. Web Audio API 即時恐怖音效合成器
+    // ==========================================
+    class HorrorAudioEngine {
+      constructor() {
+        this.ctx = null;
+        this.masterGain = null;
+        this.droneOsc = null;
+        this.droneGain = null;
+        this.heartbeatTimer = null;
+        this.isMuted = false;
+        this.failed = false;
+      }
+
+      init() {
+        if (this.failed) return;
+        try {
+          if (!this.ctx) {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (!AudioCtx) {
+              this.failed = true;
+              return;
+            }
+            this.ctx = new AudioCtx();
+            this.masterGain = this.ctx.createGain();
+            this.masterGain.gain.value = this.isMuted ? 0 : 0.85;
+            this.masterGain.connect(this.ctx.destination);
+          }
+          if (this.ctx.state === "suspended") {
+            this.ctx.resume();
+          }
+        } catch (err) {
+          this.failed = true;
+          this.ctx = null;
+        }
+      }
+
+      toggleMute() {
+        this.isMuted = !this.isMuted;
+        if (this.masterGain && this.ctx) {
+          this.masterGain.gain.setTargetAtTime(this.isMuted ? 0 : 0.85, this.ctx.currentTime, 0.05);
+        }
+        return this.isMuted;
+      }
+
+      startDrone(freq = 55, volume = 0.02) {
+        if (!this.ctx || this.failed) return;
+        const now = this.ctx.currentTime;
+        if (!this.droneOsc) {
+          this.droneOsc = this.ctx.createOscillator();
+          this.droneGain = this.ctx.createGain();
+          this.droneOsc.type = "sawtooth";
+          this.droneOsc.frequency.setValueAtTime(freq, now);
+
+          const filter = this.ctx.createBiquadFilter();
+          filter.type = "lowpass";
+          filter.frequency.setValueAtTime(140, now);
+
+          this.droneGain.gain.setValueAtTime(volume, now);
+          this.droneOsc.connect(filter);
+          filter.connect(this.droneGain);
+          this.droneGain.connect(this.masterGain);
+          this.droneOsc.start();
+        } else {
+          this.droneOsc.frequency.setTargetAtTime(freq, now, 0.5);
+          this.droneGain.gain.setTargetAtTime(volume, now, 0.5);
+        }
+      }
+
+      setHeartbeat(bpm, volume = 0.25) {
+        if (this.heartbeatTimer) {
+          clearInterval(this.heartbeatTimer);
+          this.heartbeatTimer = null;
+        }
+        if (!bpm || !this.ctx) return;
+
+        const beat = () => {
+          if (this.isMuted || !this.ctx) return;
+          const now = this.ctx.currentTime;
+          this._thump(now, 68, volume);
+          this._thump(now + 0.16, 54, volume * 0.75);
+        };
+
+        beat();
+        this.heartbeatTimer = setInterval(beat, (60 / bpm) * 1000);
+      }
+
+      _thump(time, startFreq, vol) {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(startFreq, time);
+        osc.frequency.exponentialRampToValueAtTime(28, time + 0.14);
+
+        gain.gain.setValueAtTime(0.001, time);
+        gain.gain.linearRampToValueAtTime(vol, time + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, time + 0.15);
+
+        osc.connect(gain);
+        gain.connect(this.masterGain);
+        osc.start(time);
+        osc.stop(time + 0.16);
+      }
+
+      playClick(corrupted = false) {
+        if (!this.ctx || this.isMuted) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = corrupted ? "sawtooth" : "sine";
+        osc.frequency.setValueAtTime(corrupted ? 180 : 620, now);
+        osc.frequency.exponentialRampToValueAtTime(corrupted ? 45 : 300, now + 0.08);
+
+        gain.gain.setValueAtTime(corrupted ? 0.22 : 0.08, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+
+        osc.connect(gain);
+        gain.connect(this.masterGain);
+        osc.start(now);
+        osc.stop(now + 0.1);
+      }
+
+      playStaticBurst(duration = 0.35, volume = 0.45) {
+        if (!this.ctx || this.isMuted) return;
+        const bufferSize = this.ctx.sampleRate * duration;
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = Math.random() * 2 - 1;
+        }
+
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = buffer;
+
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = "bandpass";
+        filter.frequency.value = 1600;
+
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(volume, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
+
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.masterGain);
+        noise.start();
+      }
+
+      _distortCurve() {
+        if (this._curve) return this._curve;
+        const n = 2048;
+        const curve = new Float32Array(n);
+        const k = 28;
+        for (let i = 0; i < n; i++) {
+          const x = (i / (n - 1)) * 2 - 1;
+          curve[i] = ((1 + k) * x) / (1 + k * Math.abs(x));
+        }
+        this._curve = curve;
+        return curve;
+      }
+
+      playScream(opts) {
+        if (!this.ctx || this.isMuted) return;
+        const options = opts || {};
+        const duration = options.duration || 2.2;
+        const peak = options.peak == null ? 0.62 : options.peak;
+        const f0 = options.f0 || 360;
+        const ctx = this.ctx;
+        const now = ctx.currentTime;
+
+        const out = ctx.createGain();
+        out.gain.setValueAtTime(peak, now);
+        out.connect(this.masterGain);
+
+        const shaper = ctx.createWaveShaper();
+        shaper.curve = this._distortCurve();
+        shaper.oversample = "4x";
+        shaper.connect(out);
+
+        const voices = [
+          { delay: 0, freq: f0, type: "sawtooth", amp: 0.5 },
+          { delay: 0.06, freq: f0 * 1.31, type: "square", amp: 0.24 },
+          { delay: Math.min(0.38, duration * 0.28), freq: f0 * 1.85, type: "sawtooth", amp: 0.42 }
+        ];
+
+        voices.forEach((voice) => {
+          if (voice.delay >= duration - 0.12) return;
+          const t0 = now + voice.delay;
+          const dur = Math.max(0.12, duration - voice.delay);
+          const osc = ctx.createOscillator();
+          osc.type = voice.type;
+          osc.frequency.setValueAtTime(voice.freq, t0);
+          osc.frequency.exponentialRampToValueAtTime(voice.freq * 2.25, t0 + Math.min(0.2, dur * 0.3));
+          osc.frequency.exponentialRampToValueAtTime(Math.max(70, voice.freq * 0.62), t0 + dur);
+
+          const lfo = ctx.createOscillator();
+          const lfoGain = ctx.createGain();
+          lfo.frequency.setValueAtTime(18 + voice.delay * 20, t0);
+          lfoGain.gain.setValueAtTime(28, t0);
+          lfo.connect(lfoGain);
+          lfoGain.connect(osc.frequency);
+          lfo.start(t0);
+          lfo.stop(t0 + dur + 0.05);
+
+          const formant = ctx.createBiquadFilter();
+          formant.type = "bandpass";
+          formant.frequency.setValueAtTime(980, t0);
+          formant.frequency.exponentialRampToValueAtTime(2500, t0 + Math.min(0.16, dur * 0.25));
+          formant.frequency.exponentialRampToValueAtTime(720, t0 + dur);
+          formant.Q.setValueAtTime(4.2, t0);
+
+          const g = ctx.createGain();
+          g.gain.setValueAtTime(0.001, t0);
+          g.gain.exponentialRampToValueAtTime(voice.amp, t0 + 0.02);
+          g.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
+
+          osc.connect(formant);
+          formant.connect(g);
+          g.connect(shaper);
+          osc.start(t0);
+          osc.stop(t0 + dur + 0.02);
+        });
+
+        const bufferSize = Math.max(1, Math.floor(ctx.sampleRate * duration));
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+        const noise = ctx.createBufferSource();
+        noise.buffer = buffer;
+        const bp = ctx.createBiquadFilter();
+        bp.type = "bandpass";
+        bp.frequency.setValueAtTime(760, now);
+        bp.frequency.exponentialRampToValueAtTime(2800, now + Math.min(0.18, duration * 0.2));
+        bp.frequency.exponentialRampToValueAtTime(540, now + duration);
+        bp.Q.setValueAtTime(6, now);
+        const ng = ctx.createGain();
+        ng.gain.setValueAtTime(0.001, now);
+        ng.gain.exponentialRampToValueAtTime(0.9, now + 0.025);
+        ng.gain.exponentialRampToValueAtTime(0.001, now + duration);
+        noise.connect(bp);
+        bp.connect(ng);
+        ng.connect(shaper);
+        noise.start(now);
+
+        const sub = ctx.createOscillator();
+        const sg = ctx.createGain();
+        sub.type = "sine";
+        sub.frequency.setValueAtTime(160, now);
+        sub.frequency.exponentialRampToValueAtTime(34, now + 0.32);
+        sg.gain.setValueAtTime(0.72, now);
+        sg.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
+        sub.connect(sg);
+        sg.connect(this.masterGain);
+        sub.start(now);
+        sub.stop(now + 0.4);
+      }
+
+      playJumpScare() {
+        this.setHeartbeat(0);
+        this.playScream({ duration: 2.35, peak: 0.78, f0: 390 });
+      }
+
+      stopAll() {
+        this.setHeartbeat(0);
+        if (this.droneGain && this.ctx) {
+          this.droneGain.gain.setTargetAtTime(0.01, this.ctx.currentTime, 0.3);
+        }
+      }
+    }
+
+    // ==========================================
+    // 3. 突臉繪製（原創向量臉，不使用外部圖片）
+    // ==========================================
+    function prepareCanvas(canvas) {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      canvas.width = Math.floor(w * dpr);
+      canvas.height = Math.floor(h * dpr);
+      canvas.style.width = w + "px";
+      canvas.style.height = h + "px";
+      const ctx = canvas.getContext("2d");
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      return { ctx: ctx, w: w, h: h };
+    }
+
+    function drawHorrorFace(ctx, w, h, intensity, mouthOpen, lunge) {
+      const open = mouthOpen == null ? 0.92 : mouthOpen;
+      const push = lunge == null ? 0.5 : lunge;
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = "#070000";
+      ctx.fillRect(0, 0, w, h);
+
+      if (intensity < 0.2) {
+        ctx.fillStyle = "#fff1f1";
+        ctx.fillRect(0, 0, w, h);
+        return;
+      }
+
+      const cx = w / 2 + (Math.random() - 0.5) * 22;
+      const cy = h * 0.46 + (Math.random() - 0.5) * 16;
+      const scale = (Math.min(w, h) / 280) * (1.15 + push * 0.7);
+
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.scale(scale, scale * (1.02 + open * 0.12));
+
+      ctx.fillStyle = "rgba(120, 0, 0, 0.72)";
+      ctx.beginPath();
+      ctx.ellipse(0, 8, 168, 210, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#d9cfc6";
+      ctx.beginPath();
+      ctx.moveTo(0, -150);
+      ctx.bezierCurveTo(98, -148, 124, -40, 108, 48);
+      ctx.bezierCurveTo(132, 78, 96, 168, 0, 176);
+      ctx.bezierCurveTo(-96, 168, -132, 78, -108, 48);
+      ctx.bezierCurveTo(-124, -40, -98, -148, 0, -150);
+      ctx.fill();
+
+      ctx.strokeStyle = "rgba(70, 12, 12, 0.7)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(-8, -132);
+      ctx.lineTo(6, -78);
+      ctx.lineTo(-10, -36);
+      ctx.stroke();
+
+      ctx.fillStyle = "rgba(40, 0, 0, 0.55)";
+      ctx.beginPath();
+      ctx.ellipse(-46, -36, 40, 26, -0.2, 0, Math.PI * 2);
+      ctx.ellipse(50, -30, 36, 22, 0.25, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#f4efe8";
+      ctx.beginPath();
+      ctx.ellipse(-46, -34, 27, 16, -0.15, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(52, -28, 22, 13, 0.2, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = "rgba(153, 27, 27, 0.85)";
+      ctx.lineWidth = 1.4;
+      [[-46, -34, 22], [52, -28, 16]].forEach((eye) => {
+        for (let v = -2; v <= 2; v++) {
+          ctx.beginPath();
+          ctx.moveTo(eye[0] - eye[2], eye[1] + v * 3);
+          ctx.lineTo(eye[0] + eye[2], eye[1] + v * 2.2);
+          ctx.stroke();
+        }
+      });
+
+      ctx.fillStyle = "#0c0000";
+      ctx.beginPath();
+      ctx.ellipse(-44, -38, 8, 11, 0, 0, Math.PI * 2);
+      ctx.ellipse(54, -32, 6, 9, 0.2, 0, Math.PI * 2);
+      ctx.fill();
+
+      const mouthW = 78 + open * 36;
+      const mouthH = 46 + open * 70;
+      const mouthY = 58;
+      const screamMouth = () => {
+        ctx.beginPath();
+        ctx.moveTo(-mouthW - 8, mouthY - 6);
+        ctx.quadraticCurveTo(-mouthW, mouthY - mouthH * 0.55, 0, mouthY - mouthH * 0.62);
+        ctx.quadraticCurveTo(mouthW, mouthY - mouthH * 0.55, mouthW + 8, mouthY - 6);
+        ctx.quadraticCurveTo(mouthW + 4, mouthY + mouthH * 0.72, 0, mouthY + mouthH * 0.78);
+        ctx.quadraticCurveTo(-mouthW - 4, mouthY + mouthH * 0.72, -mouthW - 8, mouthY - 6);
+      };
+      ctx.fillStyle = "#140406";
+      screamMouth();
+      ctx.fill();
+
+      ctx.fillStyle = "#3f0707";
+      ctx.beginPath();
+      ctx.ellipse(0, mouthY + mouthH * 0.18, mouthW * 0.38, mouthH * 0.28, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.save();
+      screamMouth();
+      ctx.clip();
+      ctx.fillStyle = "#efe8df";
+      const upper = [-mouthW * 0.82, -mouthW * 0.5, -mouthW * 0.22, mouthW * 0.05, mouthW * 0.34, mouthW * 0.62];
+      upper.forEach((x, i) => {
+        if (i === 2) return;
+        const tw = 8 + (i % 3);
+        const th = 12 + (i % 4) * 6;
+        ctx.beginPath();
+        ctx.moveTo(x, mouthY - mouthH * 0.5);
+        ctx.lineTo(x + tw, mouthY - mouthH * 0.5);
+        ctx.lineTo(x + tw * 0.55, mouthY - mouthH * 0.5 + th);
+        ctx.fill();
+      });
+      const lower = [-mouthW * 0.7, -mouthW * 0.38, -mouthW * 0.05, mouthW * 0.28, mouthW * 0.58];
+      lower.forEach((x, i) => {
+        if (i === 1) return;
+        const tw = 7 + (i % 2) * 3;
+        const th = 10 + (i % 3) * 5;
+        const base = mouthY + mouthH * 0.62;
+        ctx.beginPath();
+        ctx.moveTo(x, base);
+        ctx.lineTo(x + tw, base);
+        ctx.lineTo(x + tw * 0.4, base - th);
+        ctx.fill();
+      });
+      ctx.restore();
+
+      ctx.restore();
+
+      ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
+      for (let y = 0; y < h; y += 4) ctx.fillRect(0, y, w, 1);
+      for (let s = 0; s < 4; s++) {
+        const sy = Math.random() * h;
+        ctx.fillStyle = Math.random() > 0.5 ? "rgba(127, 0, 0, 0.35)" : "rgba(0, 0, 0, 0.45)";
+        ctx.fillRect(-20, sy, w + 40, 4 + Math.random() * 10);
+      }
+    }
+
+    function showCanvas() {
+      const canvas = document.getElementById("scareCanvas");
+      canvas.style.display = "block";
+      return canvas;
+    }
+
+    function hideCanvas() {
+      const canvas = document.getElementById("scareCanvas");
+      canvas.style.display = "none";
+      const ctx = canvas.getContext("2d");
+      if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    // ==========================================
+    // 4. 測驗流程
+    // ==========================================
+    const audio = new HorrorAudioEngine();
+    const scores = { secure: 0, anxious: 0, avoidant: 0, fearful: 0 };
+    const lastPick = { secure: -1, anxious: -1, avoidant: -1, fearful: -1 };
+
+    let index = 0;
+    let locked = false;
+    let finished = false;
+    let hesitateTimer = null;
+    let scareTimer = null;
+    let scareFrame = 0;
+
+    function clearTimers() {
+      if (hesitateTimer) {
+        clearTimeout(hesitateTimer);
+        hesitateTimer = null;
+      }
+      if (scareTimer) {
+        clearTimeout(scareTimer);
+        scareTimer = null;
+      }
+      if (scareFrame) {
+        cancelAnimationFrame(scareFrame);
+        scareFrame = 0;
+      }
+    }
+
+    function resetScores() {
+      Object.keys(scores).forEach((key) => {
+        scores[key] = 0;
+        lastPick[key] = -1;
+      });
+    }
+
+    function applyStage(stage) {
+      document.body.classList.remove("stage-2", "stage-3");
+      if (stage >= 3) document.body.classList.add("stage-3");
+      else if (stage >= 2) document.body.classList.add("stage-2");
+      document.getElementById("stageBadge").textContent = BADGES[stage] || BADGES[1];
+
+      if (stage <= 1) {
+        audio.startDrone(62, 0.015);
+        audio.setHeartbeat(0);
+      } else if (stage === 2) {
+        audio.startDrone(48, 0.05);
+        audio.setHeartbeat(78, 0.22);
+      } else {
+        audio.startDrone(31, 0.09);
+        audio.setHeartbeat(156, 0.4);
+      }
+    }
+
+    function renderQuestion() {
+      const q = QUESTIONS[index];
+      locked = false;
+      const fill = document.getElementById("progressFill");
+      fill.style.width = ((index / QUESTIONS.length) * 100) + "%";
+      document.getElementById("whisperText").textContent = q.whisper || "";
+      document.getElementById("questionText").textContent = q.prompt;
+
+      const list = document.getElementById("optionsList");
+      list.replaceChildren();
+      const corrupted = q.stage >= 2;
+      q.options.forEach((opt, optIndex) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "option-btn" + (corrupted ? " corrupted" : "");
+        btn.textContent = corrupted ? opt.corrupt : opt.text;
+        btn.addEventListener("click", () => choose(optIndex));
+        list.appendChild(btn);
+      });
+
+      applyStage(q.stage);
+      if (q.screamIn) audio.playScream({ duration: 0.7, peak: 0.34, f0: 540 });
+
+      if (q.finalJumpScare) {
+        hesitateTimer = setTimeout(() => {
+          if (locked || finished) return;
+          locked = true;
+          triggerJumpScare(() => finishQuiz());
+        }, 3500);
+      }
+    }
+
+    function choose(optIndex) {
+      if (locked || finished) return;
+      locked = true;
+      clearTimers();
+
+      const q = QUESTIONS[index];
+      const opt = q.options[optIndex];
+      scores[opt.type] += 1;
+      lastPick[opt.type] = index;
+      audio.playClick(q.stage >= 2);
+
+      if (q.scareFlash) {
+        flashScare(1800, () => advance());
+        return;
+      }
+      if (q.finalJumpScare) {
+        triggerJumpScare(() => finishQuiz());
+        return;
+      }
+      advance();
+    }
+
+    function advance() {
+      index += 1;
+      if (index >= QUESTIONS.length) finishQuiz();
+      else renderQuestion();
+    }
+
+    function dominantType() {
+      let best = "secure";
+      Object.keys(scores).forEach((key) => {
+        const betterScore = scores[key] > scores[best];
+        const tieBrokenByLater = scores[key] === scores[best] && lastPick[key] > lastPick[best];
+        if (betterScore || tieBrokenByLater) best = key;
+      });
+      return best;
+    }
+
+    function finishQuiz() {
+      if (finished) return;
+      finished = true;
+      clearTimers();
+      hideCanvas();
+      audio.stopAll();
+      const result = RESULTS[dominantType()];
+      document.getElementById("resultType").textContent = result.title;
+      document.getElementById("resultDesc").textContent = result.desc;
+      document.getElementById("progressFill").style.width = "100%";
+      document.getElementById("quizScreen").classList.add("hidden");
+      document.getElementById("resultScreen").classList.remove("hidden");
+      document.body.classList.remove("stage-2");
+      document.body.classList.add("stage-3");
+      document.getElementById("stageBadge").textContent = "診斷已寫入";
+    }
+
+    function paintScare(canvas, intensity, mouth, lunge) {
+      const surface = prepareCanvas(canvas);
+      drawHorrorFace(surface.ctx, surface.w, surface.h, intensity, mouth, lunge);
+    }
+
+    function flashScare(ms, done) {
+      const canvas = showCanvas();
+      paintScare(canvas, 1, 0.95, 0.55);
+      try { audio.playScream({ duration: ms / 1000, peak: 0.58, f0: 470 }); } catch (err) {}
+      const started = performance.now();
+      const frame = (now) => {
+        const t = Math.min(1, (now - started) / ms);
+        const surface = prepareCanvas(canvas);
+        const mouth = 0.4 + 0.6 * Math.abs(Math.sin(t * Math.PI * 8));
+        drawHorrorFace(surface.ctx, surface.w, surface.h, t < 0.07 ? 0.05 : 0.95, mouth, 0.4 + t * 0.3);
+        if (t < 1 && canvas.style.display === "block") {
+          scareFrame = requestAnimationFrame(frame);
+        }
+      };
+      scareFrame = requestAnimationFrame(frame);
+      scareTimer = setTimeout(() => {
+        hideCanvas();
+        if (done) done();
+      }, ms);
+    }
+
+    function triggerJumpScare(done) {
+      const canvas = showCanvas();
+      paintScare(canvas, 1, 1, 0.85);
+      try { audio.playJumpScare(); } catch (err) {}
+      const started = performance.now();
+      const duration = 2800;
+
+      const frame = (now) => {
+        const t = Math.min(1, (now - started) / duration);
+        const surface = prepareCanvas(canvas);
+        const mouth = 0.55 + 0.45 * Math.abs(Math.sin(t * Math.PI * 11));
+        const lunge = Math.min(1, t * 2.2);
+        drawHorrorFace(surface.ctx, surface.w, surface.h, t < 0.05 ? 0.04 : 1, mouth, lunge);
+        if (t < 1 && canvas.style.display === "block") {
+          scareFrame = requestAnimationFrame(frame);
+        }
+      };
+      scareFrame = requestAnimationFrame(frame);
+      scareTimer = setTimeout(() => {
+        hideCanvas();
+        if (done) done();
+      }, duration);
+    }
+
+    function showQuiz() {
+      finished = false;
+      locked = false;
+      index = 0;
+      resetScores();
+      clearTimers();
+      hideCanvas();
+      document.body.classList.remove("stage-2", "stage-3");
+      document.getElementById("startScreen").classList.add("hidden");
+      document.getElementById("resultScreen").classList.add("hidden");
+      document.getElementById("quizScreen").classList.remove("hidden");
+      renderQuestion();
+    }
+
+    document.getElementById("startBtn").addEventListener("click", () => {
+      audio.init();
+      showQuiz();
+    });
+
+    document.getElementById("restartBtn").addEventListener("click", () => {
+      audio.init();
+      showQuiz();
+    });
+
+    document.getElementById("muteBtn").addEventListener("click", () => {
+      audio.init();
+      const isMuted = audio.toggleMute();
+      document.getElementById("muteBtn").textContent = isMuted ? "🔇 音效關閉" : "🔊 音效開啟";
+    });
+  </script>
 </body>
 </html>
