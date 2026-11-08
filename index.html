@@ -386,6 +386,47 @@
       background: #140000;
     }
 
+    #wordFlood {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      background: #12060a;
+      overflow: hidden;
+    }
+
+    #wordField {
+      position: absolute;
+      inset: 0;
+    }
+
+    .flood-word {
+      position: absolute;
+      color: #ffd6e4;
+      line-height: 1.15;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    .flood-panel {
+      position: relative;
+      z-index: 2;
+      max-width: 460px;
+      margin: 14vh 16px 0;
+      padding: 22px 18px 24px;
+      text-align: center;
+      background: #1a0c12;
+      border: 2px solid #ff8fb8;
+      border-radius: 22px;
+    }
+
+    .flood-lead {
+      margin: 0 0 18px;
+      color: #fff;
+      font-size: 22px;
+      font-weight: 700;
+      line-height: 1.55;
+    }
+
     @media (prefers-reduced-motion: reduce) {
       body.stage-2 .container,
       body.stage-3 .container,
@@ -399,6 +440,13 @@
   <div class="vignette"></div>
   <div class="scanlines"></div>
   <canvas id="scareCanvas"></canvas>
+  <div id="wordFlood" class="hidden">
+    <div id="wordField"></div>
+    <div class="flood-panel">
+      <p class="flood-lead">測驗還沒結束。<br>剩下的題目一定要做完。</p>
+      <button class="primary-btn" id="floodContinue" type="button">繼續把測驗做完</button>
+    </div>
+  </div>
 
   <div class="container" id="appCard">
     <div class="mascot-wrap" aria-hidden="true">
@@ -469,92 +517,91 @@
       {
         stage: 1,
         whisper: "",
-        prompt: "1. 對方好久沒回，你會？",
+        prompt: "1. 對方很久沒回訊息時，你通常會怎麼做？",
         options: [
-          { text: "先做自己的事", corrupt: "先做自己的事", type: "secure" },
-          { text: "一直看有沒有已讀", corrupt: "一直看有沒有已讀", type: "anxious" },
-          { text: "正好可以一個人", corrupt: "正好可以一個人", type: "avoidant" },
-          { text: "覺得對方不要我了", corrupt: "覺得對方不要我了", type: "fearful" }
+          { text: "先去做自己的事", corrupt: "先去做自己的事", type: "secure" },
+          { text: "一直看手機，確認有沒有已讀", corrupt: "一直看手機，確認有沒有已讀", type: "anxious" },
+          { text: "覺得正好可以一個人安靜一下", corrupt: "覺得正好可以一個人安靜一下", type: "avoidant" },
+          { text: "會覺得對方不要我了", corrupt: "會覺得對方不要我了", type: "fearful" }
         ]
       },
       {
         stage: 1,
         whisper: "",
-        prompt: "2. 在一起之後，你要多少自己的空間？",
+        prompt: "2. 談戀愛之後，你希望有多少自己的空間？",
         options: [
-          { text: "會分享，也各過各的", corrupt: "會分享，也各過各的", type: "secure" },
-          { text: "最好隨時知道對方在哪", corrupt: "最好隨時知道對方在哪", type: "anxious" },
-          { text: "太黏我就想逃", corrupt: "太黏我就想逃", type: "avoidant" },
+          { text: "會分享生活，也各自留一點時間", corrupt: "會分享生活，也各自留一點時間", type: "secure" },
+          { text: "最好隨時都知道對方在做什麼", corrupt: "最好隨時都知道對方在做什麼", type: "anxious" },
+          { text: "對方太黏的話，我會想逃開", corrupt: "對方太黏的話，我會想逃開", type: "avoidant" },
           { text: "想靠近，又怕被看穿", corrupt: "想靠近，又怕被看穿", type: "fearful" }
         ]
       },
       {
         stage: 2,
-        whisper: "遠處有人在叫。",
-        prompt: "3. 對方半夜在線，卻不看你的訊息。",
+        whisper: "遠處好像有人在叫。",
+        prompt: "3. 半夜看到對方在線上，卻沒有讀你的訊息，你會怎麼想？",
         options: [
-          { text: "可能只是在滑手機", corrupt: "他在看你", type: "secure" },
-          { text: "想傳訊息試探", corrupt: "他們在笑你剛才的叫聲", type: "anxious" },
-          { text: "無所謂，晚點再說", corrupt: "你怕得想叫出來", type: "avoidant" },
-          { text: "之後也冷落對方", corrupt: "鎖起來就不會跑", type: "fearful" }
+          { text: "可能只是在滑手機，還不一定是在看你", corrupt: "他可能正在看你打這幾個字", type: "secure" },
+          { text: "會想再傳一則，確認他到底在不在", corrupt: "再傳一則，不然你會一直想", type: "anxious" },
+          { text: "告訴自己晚點再說就好", corrupt: "你說晚點再說，心裡還是不安", type: "avoidant" },
+          { text: "也先冷落他，看他會不會來找你", corrupt: "乾脆也消失，看他慌不慌", type: "fearful" }
         ]
       },
       {
         stage: 2,
-        whisper: "那聲尖叫比較近了。",
-        prompt: "4. 你覺得最親的人懂你嗎？",
+        whisper: "那聲音好像近了一點。",
+        prompt: "4. 你覺得最親近的人，真的懂你在想什麼嗎？",
         options: [
-          { text: "會聊，通常能解開", corrupt: "沒有人聽得見", type: "secure" },
-          { text: "不懂，所以我更用力討好", corrupt: "再叫也留不住", type: "anxious" },
-          { text: "本來就沒人完全懂", corrupt: "房間裡不只有你", type: "avoidant" },
-          { text: "靠近最後都會傷人", corrupt: "今晚就會被丟掉", type: "fearful" }
+          { text: "會把話說開，通常也能好好解決", corrupt: "說開了，也不代表有人聽得見", type: "secure" },
+          { text: "好像不懂，所以我會更用力地討好", corrupt: "他不懂，所以你更不敢停下來", type: "anxious" },
+          { text: "本來就沒有人能完全懂另一個人", corrupt: "你早就知道，沒有人真的懂", type: "avoidant" },
+          { text: "一靠近，最後常常還是會被傷害", corrupt: "靠近之後，還是會被丟掉", type: "fearful" }
         ]
       },
       {
         stage: 2,
-        whisper: "它吸了一口氣。",
-        scareFlash: true,
-        prompt: "5. 如果今晚就分開，你最怕什麼？",
+        whisper: "先把這題答完。",
+        wordFlood: true,
+        prompt: "5. 如果今晚就要分開，你最害怕失去的是什麼？",
         options: [
-          { text: "一起走過的日子", corrupt: "你會一個人爛在黑暗裡", type: "secure" },
-          { text: "沒有對方，我不知道自己是誰", corrupt: "沒有他你什麼都不是", type: "anxious" },
-          { text: "又要重新一個人生活", corrupt: "門已經從外面鎖上", type: "avoidant" },
-          { text: "再次被丟掉", corrupt: "鏡子裡的嘴正在叫", type: "fearful" }
+          { text: "一起走過的那些日子", corrupt: "那些日子會一個人留在黑暗裡", type: "secure" },
+          { text: "沒有對方，我會不知道自己是誰", corrupt: "沒有他，你會不知道自己是誰", type: "anxious" },
+          { text: "又要重新習慣一個人生活", corrupt: "門一旦關上，就只剩你自己", type: "avoidant" },
+          { text: "再一次被丟掉的感覺", corrupt: "你最怕的，是再被丟掉一次", type: "fearful" }
         ]
       },
       {
         stage: 3,
-        whisper: "尖叫。一直尖叫。",
-        screamIn: true,
-        prompt: "6. 關燈後，旁邊的呼吸聲是人嗎？",
+        whisper: "還不能停，後面還有題目。",
+        prompt: "6. 關燈之後，你聽到身邊有呼吸聲。你會怎麼做？",
         options: [
-          { text: "這只是題目，我想一下", corrupt: "叫出來也沒用", type: "secure" },
-          { text: "有人在就好，我怕一個人", corrupt: "別趕它走，讓它叫", type: "anxious" },
-          { text: "我寧願自己睡", corrupt: "它已經躺在旁邊", type: "avoidant" },
-          { text: "我不敢睜開眼睛", corrupt: "睜眼，跟它一起叫", type: "fearful" }
+          { text: "知道這只是測驗，還是會先想一下", corrupt: "你知道是題目，還是不敢動", type: "secure" },
+          { text: "有人在旁邊，我會比較不怕", corrupt: "有人陪著，你就沒那麼怕", type: "anxious" },
+          { text: "我寧願自己睡，不想靠得太近", corrupt: "你寧願自己一個人，也不想靠近", type: "avoidant" },
+          { text: "我不敢睜開眼睛", corrupt: "你不敢睜開眼睛看是誰", type: "fearful" }
         ]
       },
       {
         stage: 3,
-        whisper: "它的嘴張得比臉還大。",
-        prompt: "7. 交一個秘密，換永遠不被丟掉。你願意嗎？",
+        whisper: "再兩題就結束。",
+        prompt: "7. 如果交出一個秘密，就能永遠不被丟掉，你願意嗎？",
         options: [
-          { text: "不交。親密不用賣掉自己", corrupt: "你不能拒絕", type: "secure" },
-          { text: "全部拿走，只要他留下", corrupt: "把聲音交出來", type: "anxious" },
-          { text: "我寧願被忘掉", corrupt: "連呼吸一起消失", type: "avoidant" },
-          { text: "選哪個都是惡夢", corrupt: "歡迎來到這場尖叫", type: "fearful" }
+          { text: "不願意。親密不需要賣掉自己", corrupt: "你不願意用秘密換留下來", type: "secure" },
+          { text: "可以全部交出去，只要他留下來", corrupt: "只要他留著，你什麼都給", type: "anxious" },
+          { text: "我寧願被忘掉，也不想被看光", corrupt: "被忘掉也好，至少不用被看光", type: "avoidant" },
+          { text: "我覺得選哪一個都不太好", corrupt: "兩個選擇你都害怕", type: "fearful" }
         ]
       },
       {
         stage: 3,
-        whisper: "跟我一起叫。",
+        whisper: "最後一題。",
         finalJumpScare: true,
-        prompt: "8. 背後有東西在看你的脖子嗎？",
+        prompt: "8. 你會不會覺得，有什麼東西正站在你背後看著你？",
         options: [
-          { text: "沒有，是我多想", corrupt: "回 頭 叫", type: "secure" },
-          { text: "有一點，快點結束", corrupt: "叫 大 聲 點", type: "anxious" },
-          { text: "別再嚇我", corrupt: "我 在 你 後 面", type: "avoidant" },
-          { text: "我不該點進來", corrupt: "太 遲 了", type: "fearful" }
+          { text: "沒有，應該是我想太多", corrupt: "你說沒有，可是脖子是涼的", type: "secure" },
+          { text: "有一點，希望這題快點結束", corrupt: "你想快點結束，它還沒走", type: "anxious" },
+          { text: "不要再嚇我了，我想自己安靜一下", corrupt: "安靜下來之後，呼吸還在", type: "avoidant" },
+          { text: "我開始後悔點進這個測驗", corrupt: "現在關掉，也已經太遲了", type: "fearful" }
         ]
       }
     ];
@@ -777,6 +824,7 @@
         const f0 = requested < 600 ? 820 : Math.max(680, Math.min(980, requested));
         const ctx = this.ctx;
         const t0 = ctx.currentTime + (options.delay || 0);
+        this._duckMusic(t0, duration);
         const cycle = this._glottalCycle();
         const hzToRate = cycle.length / ctx.sampleRate;
 
@@ -914,8 +962,164 @@
         this.playScream({ duration: 2.15, peak: 0.74, f0: 920, delay: 0.05 });
       }
 
+      _duckMusic(from, duration) {
+        if (!this.musicGain || !this.ctx) return;
+        this.musicGain.gain.setTargetAtTime(0.08, from, 0.03);
+        this.musicGain.gain.setTargetAtTime(0.95, from + duration, 0.25);
+      }
+
+      startMusic() {
+        if (!this.ctx || this.failed) return;
+        if (!this.musicGain) {
+          this.musicGain = this.ctx.createGain();
+          this.musicGain.gain.setValueAtTime(0.95, this.ctx.currentTime);
+          this.musicGain.connect(this.masterGain);
+          this._startPad();
+        } else {
+          this.musicGain.gain.setTargetAtTime(0.95, this.ctx.currentTime, 0.08);
+        }
+        if (this.musicTimer) return;
+        this.nextNoteAt = this.ctx.currentTime + 0.06;
+        this.musicTimer = setInterval(() => {
+          try { this._pumpMusic(); } catch (err) {}
+        }, 70);
+      }
+
+      setMood(questionIndex) {
+        const step = Math.max(0, Math.min(7, questionIndex));
+        this.mood = step / 7;
+        if (step === 0) {
+          this.musicStep = 0;
+          this.skipLock = null;
+          this.skipFlip = false;
+        }
+        this.startMusic();
+        if (this.padGain && this.ctx) {
+          const level = 0.055 * (1 - this.mood * 0.85);
+          this.padGain.gain.setTargetAtTime(Math.max(0.004, level), this.ctx.currentTime, 0.4);
+        }
+      }
+
+      stopMusic() {
+        if (this.musicTimer) {
+          clearInterval(this.musicTimer);
+          this.musicTimer = null;
+        }
+        if (this.musicGain && this.ctx) {
+          this.musicGain.gain.setTargetAtTime(0.0001, this.ctx.currentTime, 0.08);
+        }
+      }
+
+      _startPad() {
+        if (this.padGain || !this.musicGain) return;
+        const now = this.ctx.currentTime;
+        this.padGain = this.ctx.createGain();
+        this.padGain.gain.setValueAtTime(0.05, now);
+        this.padGain.connect(this.musicGain);
+        [196, 261.63, 329.63].forEach((freq) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(freq, now);
+          gain.gain.setValueAtTime(0.22, now);
+          osc.connect(gain);
+          gain.connect(this.padGain);
+          osc.start(now);
+        });
+      }
+
+      _pumpMusic() {
+        if (!this.ctx) return;
+        const horizon = this.ctx.currentTime + 0.28;
+        let guard = 0;
+        while (this.nextNoteAt < horizon && guard < 8) {
+          this._scheduleNote();
+          guard += 1;
+        }
+      }
+
+      _scheduleNote() {
+        const melody = [523.25, 659.25, 783.99, 880, 783.99, 659.25, 587.33, 523.25, 659.25, 783.99, 1046.5, 987.77, 880, 783.99, 659.25, 587.33];
+        const mood = this.mood || 0;
+        let freq;
+        let skipped = false;
+        if (mood > 0.7) {
+          if (this.skipLock == null) this.skipLock = this.musicStep % melody.length;
+          const slot = (this.skipLock + (this.skipFlip ? 1 : 0)) % melody.length;
+          this.skipFlip = !this.skipFlip;
+          freq = melody[slot];
+          skipped = true;
+        } else {
+          this.skipLock = null;
+          const skipChance = mood < 0.25 ? 0 : (mood - 0.18) * 0.9;
+          skipped = Math.random() < skipChance;
+          freq = melody[this.musicStep % melody.length];
+          if (!skipped) this.musicStep += 1;
+        }
+        if (mood > 0.34 && (this.musicStep % 5 === 4)) freq *= 0.94387;
+        freq *= 1 - mood * 0.1;
+        freq *= 1 + (Math.random() - 0.5) * mood * 0.07;
+        const gap = skipped ? (0.09 + Math.random() * 0.04) : Math.max(0.22, 0.46 - mood * 0.14);
+        if (!this.isMuted) {
+          this._boxNote(Math.max(80, freq), this.nextNoteAt, mood, skipped);
+          if (skipped && mood > 0.4) this._needle(this.nextNoteAt);
+        }
+        this.nextNoteAt += gap;
+      }
+
+      _boxNote(freq, time, mood, skipped) {
+        const osc = this.ctx.createOscillator();
+        const partial = this.ctx.createOscillator();
+        const partialGain = this.ctx.createGain();
+        const filter = this.ctx.createBiquadFilter();
+        const gain = this.ctx.createGain();
+        osc.type = mood > 0.62 ? "triangle" : "sine";
+        partial.type = "sine";
+        osc.frequency.setValueAtTime(freq, time);
+        partial.frequency.setValueAtTime(freq * 2, time);
+        if (mood > 0.45) {
+          osc.frequency.exponentialRampToValueAtTime(Math.max(40, freq * (1 - mood * 0.06)), time + 0.1);
+        }
+        filter.type = "lowpass";
+        filter.frequency.setValueAtTime(mood > 0.62 ? 980 : 3200, time);
+        partialGain.gain.setValueAtTime(mood > 0.5 ? 0.04 : 0.16, time);
+        const level = skipped ? 0.16 : 0.26;
+        const dur = skipped ? 0.08 : 0.38;
+        gain.gain.setValueAtTime(0.0001, time);
+        gain.gain.exponentialRampToValueAtTime(level, time + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.0001, time + dur);
+        osc.connect(filter);
+        partial.connect(partialGain);
+        partialGain.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.musicGain);
+        osc.start(time);
+        partial.start(time);
+        osc.stop(time + dur + 0.02);
+        partial.stop(time + dur + 0.02);
+      }
+
+      _needle(time) {
+        const len = Math.max(1, Math.floor(this.ctx.sampleRate * 0.012));
+        const buf = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
+        const data = buf.getChannelData(0);
+        for (let i = 0; i < len; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / len);
+        const src = this.ctx.createBufferSource();
+        src.buffer = buf;
+        const hp = this.ctx.createBiquadFilter();
+        hp.type = "highpass";
+        hp.frequency.setValueAtTime(1800, time);
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(0.4, time);
+        src.connect(hp);
+        hp.connect(gain);
+        gain.connect(this.musicGain);
+        src.start(time);
+      }
+
       stopAll() {
         this.setHeartbeat(0);
+        this.stopMusic();
         if (this.droneGain && this.ctx) {
           this.droneGain.gain.setTargetAtTime(0.01, this.ctx.currentTime, 0.3);
         }
@@ -987,12 +1191,35 @@
     let finished = false;
     let hesitateTimer = null;
     let scareTimer = null;
+    let floodTimer = null;
     let scareFrame = 0;
+
+    const FLOOD_WORDS = [
+      "做到最後",
+      "不准關掉",
+      "還有題目",
+      "一定要做完",
+      "不要離開",
+      "測驗還沒結束",
+      "把剩下的答完",
+      "現在不能停",
+      "再往下做",
+      "做完才算",
+      "後面還有三題",
+      "請繼續",
+      "不要中途關掉",
+      "答完才能離開",
+      "還沒結束"
+    ];
 
     function clearTimers() {
       if (hesitateTimer) {
         clearTimeout(hesitateTimer);
         hesitateTimer = null;
+      }
+      if (floodTimer) {
+        clearInterval(floodTimer);
+        floodTimer = null;
       }
       if (scareTimer) {
         clearTimeout(scareTimer);
@@ -1018,7 +1245,7 @@
       document.getElementById("stageBadge").textContent = BADGES[stage] || BADGES[1];
 
       if (stage <= 1) {
-        audio.startDrone(62, 0.015);
+        audio.startDrone(196, 0.004);
         audio.setHeartbeat(0);
       } else if (stage === 2) {
         audio.startDrone(48, 0.05);
@@ -1039,18 +1266,18 @@
 
       const list = document.getElementById("optionsList");
       list.replaceChildren();
-      const corrupted = q.stage >= 2;
+      const uneasy = q.stage >= 3;
       q.options.forEach((opt, optIndex) => {
         const btn = document.createElement("button");
         btn.type = "button";
-        btn.className = "option-btn" + (corrupted ? " corrupted" : "");
-        btn.textContent = corrupted ? opt.corrupt : opt.text;
+        btn.className = "option-btn" + (uneasy ? " corrupted" : "");
+        btn.textContent = uneasy ? opt.corrupt : opt.text;
         btn.addEventListener("click", () => choose(optIndex));
         list.appendChild(btn);
       });
 
       applyStage(q.stage);
-      if (q.screamIn) audio.playScream({ duration: 1.15, peak: 0.66, f0: 840 });
+      audio.setMood(index);
 
       if (q.finalJumpScare) {
         hesitateTimer = setTimeout(() => {
@@ -1072,8 +1299,8 @@
       lastPick[opt.type] = index;
       audio.playClick(q.stage >= 2);
 
-      if (q.scareFlash) {
-        flashScare(1800, () => advance());
+      if (q.wordFlood) {
+        showWordFlood(() => advance());
         return;
       }
       if (q.finalJumpScare) {
@@ -1116,6 +1343,44 @@
       document.getElementById("stageBadge").textContent = "診斷已寫入";
     }
 
+    function showWordFlood(done) {
+      const layer = document.getElementById("wordFlood");
+      const field = document.getElementById("wordField");
+      field.replaceChildren();
+      layer.classList.remove("hidden");
+      let count = 0;
+      const spawn = () => {
+        for (let i = 0; i < 4; i++) {
+          const word = document.createElement("span");
+          word.className = "flood-word";
+          word.textContent = FLOOD_WORDS[count % FLOOD_WORDS.length];
+          word.style.left = (Math.random() * 72) + "%";
+          word.style.top = (Math.random() * 86) + "%";
+          word.style.fontSize = (15 + Math.random() * 26) + "px";
+          word.style.opacity = String(0.28 + Math.random() * 0.72);
+          word.style.color = Math.random() > 0.82 ? "#ff5d7a" : "#ffd6e4";
+          word.style.transform = "rotate(" + ((Math.random() - 0.5) * 16) + "deg)";
+          field.appendChild(word);
+          count += 1;
+        }
+        if (count >= 96 && floodTimer) {
+          clearInterval(floodTimer);
+          floodTimer = null;
+        }
+      };
+      spawn();
+      floodTimer = setInterval(spawn, 90);
+      document.getElementById("floodContinue").onclick = () => {
+        if (floodTimer) {
+          clearInterval(floodTimer);
+          floodTimer = null;
+        }
+        layer.classList.add("hidden");
+        field.replaceChildren();
+        if (done) done();
+      };
+    }
+
     function holdScare(ms, done) {
       const canvas = showCanvas();
       drawScarePhoto(canvas, true);
@@ -1146,6 +1411,8 @@
       resetScores();
       clearTimers();
       hideCanvas();
+      document.getElementById("wordFlood").classList.add("hidden");
+      document.getElementById("wordField").replaceChildren();
       document.body.classList.remove("stage-2", "stage-3");
       document.getElementById("startScreen").classList.add("hidden");
       document.getElementById("resultScreen").classList.add("hidden");
